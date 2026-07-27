@@ -10,10 +10,22 @@ namespace PackageRegistryTestHost;
 public sealed class PackageRegistryWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string databaseName = $"PackageRegistryTests-{Guid.NewGuid():N}";
+    private readonly IReadOnlyDictionary<string, string?> settings;
+
+    public PackageRegistryWebApplicationFactory(
+        IReadOnlyDictionary<string, string?>? settings = null
+    )
+    {
+        this.settings = settings ?? new Dictionary<string, string?>();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        foreach (var setting in settings)
+        {
+            builder.UseSetting(setting.Key, setting.Value);
+        }
 
         builder.ConfigureServices(services =>
         {

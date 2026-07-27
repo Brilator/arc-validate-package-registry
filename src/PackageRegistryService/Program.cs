@@ -15,6 +15,7 @@ using PackageRegistryService.Data;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
+using PackageRegistryService.Services;
 
 
 // ------------------------- ApplicationBuilder -------------------------
@@ -31,6 +32,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApiDocument(DocGen.GeneratorSetup);
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<IServiceReleaseInfoProvider, ServiceReleaseInfoProvider>();
 
 // Add database related services
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -100,6 +102,8 @@ app.MapHealthChecks("/_health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+
+app.MapGet("/_version", PackageRegistryService.API.Handlers.ServiceVersionHandlers.Get);
     //.RequireHost(); // use host of status page here to limit this endpoint
 
 // Configure the HTTP request pipeline.

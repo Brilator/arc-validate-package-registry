@@ -190,6 +190,9 @@ jobs:
         uses: docker/metadata-action@v5.5.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5.1.0
@@ -199,6 +202,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            AVPR_BUILD_REVISION=${{ github.sha }}
+            AVPR_BUILD_CHANNEL=${{ github.ref_name }}
+            AVPR_BUILD_CREATED=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
   test-staging-area:
     name: "Test staging area"

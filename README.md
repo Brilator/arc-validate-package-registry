@@ -448,16 +448,26 @@ Changes in e.g. ValidationPackage metadata need to be reflected at several point
 - Database seeding code in PackageRegistryService/Data/DataInitializer.cs: when adding new fields, make sure to update the seeding code accordingly.
 - do not forget to trigger [client lib auto generation](./src/AVPRClient/README.md)
 
-### Triggering a image release
+### Triggering an image release
 
-Any change under `src/PackageRegistryService` on a push to a release branch builds and pushes a docker image to `ghcr.io/nfdi4plants/avpr`, tagged by branch name (via `docker/metadata-action`):
+Any change under `src/PackageRegistryService` on a push to a release branch builds and pushes a docker image to `ghcr.io/nfdi4plants/avpr`. `docker/metadata-action` publishes both the convenient moving branch tag and an immutable `sha-<short-sha>` tag:
 
 - pushes to `main` publish `ghcr.io/nfdi4plants/avpr:main`, deployed to the **production** instance at [avpr.nfdi4plants.org](https://avpr.nfdi4plants.org).
 - pushes to `dev` publish `ghcr.io/nfdi4plants/avpr:dev`, deployed to the **development** instance.
 
-`dev` is a long-lived integration branch for trying changes on the development instance before they are merged to `main`. NuGet releases of the `AVPRIndex`/`AVPRClient` libraries are gated to `main` only, so a `dev` push produces the `:dev` image and nothing else. The development instance is deployed from the `:dev` tag; its hosting/deployment lives outside this repository.
+`dev` is a long-lived integration branch for trying changes on the development instance before they are merged to `main`. NuGet releases of the `AVPRIndex`/`AVPRClient` libraries are gated to `main` only, so a `dev` push produces the `:dev` and matching `:sha-<short-sha>` image tags without publishing NuGet packages. The development instance is deployed from the `:dev` tag; its hosting/deployment lives outside this repository.
 
-This will move to a versioned release process in the future.
+The service release version is maintained in `PackageRegistryService.csproj`. Human-readable release names and changes are maintained in `src/PackageRegistryService/RELEASE_NOTES.md`; keep the latest release heading in the form `## [<version>] - <release name>` and make its version match the project version.
+
+The image build records the full Git commit as the .NET `SourceRevisionId` and exposes its revision, source channel, creation time, service version, and current release through `/_version`. The same release notes are rendered at `/releases`. `/_health` remains the existing database-aware endpoint used for service monitoring.
+
+Production and development deployment is manual. Prefer the immutable SHA tag over a moving branch tag, apply the migration SQL generated from the same repository revision, then start the image and confirm the expected commit at `/_version`:
+
+```shell
+docker pull ghcr.io/nfdi4plants/avpr:sha-<short-sha>
+```
+
+Applying migrations remains a separate, explicitly authorized deployment step; starting the service does not apply production migrations automatically.
 
 ### OpenAPI endpoint documentation via Swagger UI
 

@@ -10,6 +10,8 @@ namespace PackageRegistryService.Pages
 
             group.MapGet("about", AboutHandlers.Render);
 
+            group.MapGet("releases", ReleaseHandlers.Render);
+
             group.MapGet("packages", PackagesHandlers.Render);
 
             group.MapGet("package/{packageName}", PackageHandlers.RenderLatest);
