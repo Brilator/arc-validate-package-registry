@@ -23,9 +23,10 @@
   <ul>
     {RenderNavbarItem(active, "Home", "/")}
     {RenderNavbarItem(active, "Browse Packages", "/packages")}
+    {RenderNavbarItem(active, "Documentation", "/docs")}
     {RenderNavbarItem(active, "Releases", "/releases")}
-    {RenderNavbarItem(active, "About", "/about")}
-    <li><a href=""https://github.com/nfdi4plants/arc-validate-package-registry?tab=readme-ov-file#validation-package-staging-area"">Submit a package</a></li>
+    {RenderNavbarItem(active, "About", "/docs/index.md#about-avpr")}
+    <li><a href=""https://github.com/nfdi4plants/arc-validate-package-registry/blob/main/docs/packages/submission.md"">Submit a package</a></li>
   </ul>
 </nav>";
         }

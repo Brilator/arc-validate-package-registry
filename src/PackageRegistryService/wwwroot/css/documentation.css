@@ -1,0 +1,57 @@
+.documentation-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: calc(var(--pico-spacing) * 2);
+  align-items: start;
+}
+
+.documentation-sidebar {
+  position: sticky;
+  top: var(--pico-spacing);
+  max-height: calc(100vh - var(--pico-spacing) * 2);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.documentation-sidebar nav ul {
+  display: block;
+  padding: 0;
+  margin: calc(var(--pico-spacing) / 2) 0 0;
+}
+
+.documentation-sidebar nav li {
+  display: block;
+  padding: 0;
+  margin: 0 0 calc(var(--pico-spacing) / 3);
+}
+
+.documentation-sidebar nav a {
+  display: block;
+  margin: 0;
+  padding: calc(var(--pico-spacing) / 4) 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.documentation-sidebar .toc-level-3 {
+  padding-left: var(--pico-spacing);
+  font-size: 0.9em;
+}
+
+.documentation-content {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .documentation-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pico-spacing);
+  }
+
+  .documentation-sidebar {
+    position: static;
+    max-height: none;
+    padding-bottom: var(--pico-spacing);
+    border-bottom: var(--pico-border-width) solid var(--pico-muted-border-color);
+  }
+}

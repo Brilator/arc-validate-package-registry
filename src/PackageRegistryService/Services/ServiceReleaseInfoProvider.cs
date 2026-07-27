@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Markdig;
 using PackageRegistryService.Models;
 
 namespace PackageRegistryService.Services;
@@ -9,10 +8,10 @@ public sealed partial class ServiceReleaseInfoProvider : IServiceReleaseInfoProv
 {
     private const string ReleaseNotesFileName = "RELEASE_NOTES.md";
     private const string ReleaseNotesUrl = "/releases";
-    private static readonly MarkdownPipeline MarkdownPipeline =
-        new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-
-    public ServiceReleaseInfoProvider(IConfiguration configuration)
+    public ServiceReleaseInfoProvider(
+        IConfiguration configuration,
+        IMarkdownRenderer markdownRenderer
+    )
     {
         var assembly = typeof(ServiceReleaseInfoProvider).Assembly;
         var informationalVersion =
@@ -40,7 +39,7 @@ public sealed partial class ServiceReleaseInfoProvider : IServiceReleaseInfoProv
             new BuildIdentity(revision, channel, created),
             new ReleaseIdentity(release.Name, release.Summary, ReleaseNotesUrl)
         );
-        ReleaseNotesHtml = Markdown.ToHtml(releaseNotesMarkdown, MarkdownPipeline);
+        ReleaseNotesHtml = markdownRenderer.Render(releaseNotesMarkdown);
     }
 
     public ServiceVersionDocument Current { get; }

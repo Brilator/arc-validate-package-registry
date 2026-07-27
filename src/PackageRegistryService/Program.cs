@@ -32,7 +32,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApiDocument(DocGen.GeneratorSetup);
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<IMarkdownRenderer, MarkdownRenderer>();
 builder.Services.AddSingleton<IServiceReleaseInfoProvider, ServiceReleaseInfoProvider>();
+builder.Services.AddSingleton<IDocumentationProvider, DocumentationProvider>();
 
 // Add database related services
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

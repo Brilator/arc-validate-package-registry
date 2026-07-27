@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Content Include="..\..\StagingArea\**" CopyToOutputDirectory="Always" LinkBase="StagingArea" />
+    <Content Include="..\..\docs\**\*.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" LinkBase="docs" />
   </ItemGroup>
 
   <ItemGroup>

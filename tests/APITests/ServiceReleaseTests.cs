@@ -69,7 +69,8 @@ public class ServiceReleaseTests
         Assert.Contains("20260724094518_AddCWLInputs", html);
         Assert.Contains("Why the first release supports a scalar subset", html);
         Assert.Contains("File</code>, <code>Directory", html);
-        Assert.Contains("href=\"/swagger\"", html);
+        Assert.Contains("href=\"https://avpr.nfdi4plants.org/swagger\"", html);
+        Assert.Contains("href=\"../../docs/packages/cwl-inputs.md\"", html);
         Assert.Contains("aria-current=\"page\" href=\"/releases\"", html);
     }
 

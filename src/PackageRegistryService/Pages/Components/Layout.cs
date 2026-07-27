@@ -2,7 +2,12 @@
 {
     public static class Layout
     {
-        public static string Render(string activeNavbarItem, string title, string content)
+        public static string Render(
+            string activeNavbarItem,
+            string title,
+            string content,
+            string additionalHeadContent = ""
+        )
         {
             return $@"<!DOCTYPE html>
 <html>
@@ -12,6 +17,7 @@
     <meta name=""color-scheme"" content=""light dark"" />
     <link rel=""stylesheet"" href=""/css/pico.cyan.min.css"" />
     <link rel=""stylesheet"" href=""/css/highlightjs.atom-one-dark.min.css"" />
+    {additionalHeadContent}
     <script src=""/js/highlight.min.js""></script>
     <script>hljs.highlightAll();</script>
     <title>{title}</title>

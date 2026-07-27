@@ -28,9 +28,10 @@ namespace PackageRegistryService.Pages.Components
       <ul>
         {RenderFooterItem(active, "Home", "/")}
         {RenderFooterItem(active, "Browse Packages", "/packages")}
+        {RenderFooterItem(active, "Documentation", "/docs")}
         {RenderFooterItem(active, "Releases", "/releases")}
-        {RenderFooterItem(active, "About", "/about")}
-        {RenderFooterItem(active, "Submit a package", "https://github.com/nfdi4plants/arc-validate-package-registry?tab=readme-ov-file#validation-package-staging-area")}
+        {RenderFooterItem(active, "About", "/docs/index.md#about-avpr")}
+        {RenderFooterItem(active, "Submit a package", "https://github.com/nfdi4plants/arc-validate-package-registry/blob/main/docs/packages/submission.md")}
       </ul>
     </div>
   </div>

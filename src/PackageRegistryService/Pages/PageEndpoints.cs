@@ -12,6 +12,10 @@ namespace PackageRegistryService.Pages
 
             group.MapGet("releases", ReleaseHandlers.Render);
 
+            group.MapGet("docs", DocumentationHandlers.RenderIndex);
+
+            group.MapGet("docs/{**document}", DocumentationHandlers.Render);
+
             group.MapGet("packages", PackagesHandlers.Render);
 
             group.MapGet("package/{packageName}", PackageHandlers.RenderLatest);

@@ -85,6 +85,8 @@ published with unclear semantics.
   existing packages.
 - Render declared command inputs and their effective binding behavior on
   package pages.
+- Split contributor and operator guidance into GitHub-readable Markdown pages
+  and render those same sources on the service at `/docs`.
 - Cover required and nullable primitives, binding defaults, ignored extension
   fields, invalid shapes, public JSON, normalized storage, client conversion,
   and website rendering with automated tests.
@@ -96,8 +98,8 @@ published with unclear semantics.
 
 ### Documentation
 
-The complete supported-field tables and frontmatter example are maintained in
-the [repository README](https://github.com/nfdi4plants/arc-validate-package-registry#cwl-command-inputs).
+The rationale, supported-field tables, and frontmatter example are maintained
+in the [CWL command-input documentation](../../docs/packages/cwl-inputs.md).
 The deployed response schema and example values are available through the
-[Swagger UI](/swagger), avoiding a second copy of those contract examples in
+[Swagger UI](https://avpr.nfdi4plants.org/swagger), avoiding a second copy of those contract examples in
 the release history.
