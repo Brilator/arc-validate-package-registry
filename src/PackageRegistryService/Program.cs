@@ -80,17 +80,37 @@ app.UseSwaggerUi(settings => {
     settings.ValidateSpecification = true;
 }); 
 
-if (app.Environment.IsDevelopment())
+var isLocalDevelopment = app.Environment.IsDevelopment();
+var buildChannel = builder.Configuration["AVPR_BUILD_CHANNEL"];
+var isDeployedDevelopment =
+    !app.Environment.IsEnvironment("Testing")
+    && DatabaseInitialization.IsDeployedDevelopmentInstance(buildChannel);
+
+if (isLocalDevelopment || isDeployedDevelopment)
 {
-    // if we are in development mode, apply migrations and seed the database
-    // otherwise do not touch the database, and apply necessary migrations by exporting migration sql scripts
-    // e.g. via `dotnet ef migrations script`
     using (var scope = app.Services.CreateScope())
     {
         var ctx = scope.ServiceProvider.GetRequiredService<ValidationPackageDb>();
-        ctx.Database.Migrate();
-        DataInitializer.SeedData(ctx);
+
+        // Preserve the local development workflow. A deployed dev build may
+        // initialize only a completely schema-less database; once any table
+        // exists, migrations and seeding remain an explicit operation.
+        if (
+            isLocalDevelopment
+            || DatabaseInitialization.ShouldInitializeDeployedDatabase(
+                buildChannel,
+                DatabaseInitialization.HasSchema(ctx)
+            )
+        )
+        {
+            ctx.Database.Migrate();
+            DataInitializer.SeedData(ctx);
+        }
     }
+}
+
+if (isLocalDevelopment)
+{
     app.UseHttpsRedirection();
 }
 

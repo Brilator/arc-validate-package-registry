@@ -17,17 +17,24 @@ type PublishAPI =
     static member publishPendingPackages (verbose: bool) (repo_root: string) (args: ParseResults<PublishArgs>) = 
     
         let isDryRun = args.TryGetResult(PublishArgs.Dry_Run).IsSome
+        let baseUrl =
+            args.GetResult(PublishArgs.Base_Url)
+            |> RegistryEndpoint.normalize
 
         if isDryRun then
             printfn "Dry run mode enabled. No changes will be pushed to the package database."
             printfn ""
+
+        printfn $"Target registry: {baseUrl}"
 
         let apiKey = args.GetResult(PublishArgs.API_Key)
 
         let client = 
             let httpClient = new System.Net.Http.HttpClient()
             httpClient.DefaultRequestHeaders.Add("X-API-KEY", apiKey)
-            new AVPRClient.Client(httpClient)
+            let client = new AVPRClient.Client(httpClient)
+            client.BaseUrl <- baseUrl
+            client
 
         let published_packages = 
             client.GetAllPackagesAsync()
@@ -79,7 +86,7 @@ type PublishAPI =
 
         if isDryRun then
             printfn ""
-            printfn $"!! the following packages and content hashes will be submitted to the production DB: !!"
+            printfn $"!! the following packages and content hashes would be submitted to {baseUrl}: !!"
             printfn ""
             
             new_packages
@@ -96,7 +103,7 @@ type PublishAPI =
                 )
         else
             printfn ""
-            printfn $"!! publishing pending packages and content hashes to the production DB: !!"
+            printfn $"!! publishing pending packages and content hashes to {baseUrl}: !!"
             printfn ""
             new_packages
             |> Array.iter (fun i ->

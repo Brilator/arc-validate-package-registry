@@ -67,6 +67,13 @@ docker pull ghcr.io/nfdi4plants/avpr:sha-<short-sha>
 
 Production startup deliberately does not apply migrations.
 
+A service image built from the `dev` branch is the one exception for a new
+development instance. When its configured database contains no tables, startup
+applies the bundled migrations and seeds packages from `StagingArea`. If any
+table already exists, startup does not migrate or seed the database. Images
+built from `main`, `local`, or any other channel never use this deployed-dev
+initialization path.
+
 ## NuGet releases
 
 For `AVPRIndex` or `AVPRClient`:
@@ -83,8 +90,27 @@ Package publication is a separate process from deploying the registry service.
 Inspect pending publication without pushing:
 
 ```shell
-dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish --api-key <key> --dry-run
+dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish \
+  --base-url https://avpr.nfdi4plants.org \
+  --api-key <key> \
+  --dry-run
 ```
+
+`--base-url` is required so that the target registry is always explicit. To
+populate an initialized but empty development registry from `StagingArea`, use
+the development instance URL and its API key:
+
+```shell
+dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish \
+  --base-url <development-registry-url> \
+  --api-key <development-api-key>
+```
+
+AVPRCI verifies packages already present at the selected endpoint and publishes
+only missing packages whose frontmatter has `Publish: true`. It does not create
+or migrate the database schema. An empty database used by a `dev`-channel image
+is initialized during service startup; otherwise apply the service migrations
+before using AVPRCI against a new instance.
 
 Only an authorized maintainer should remove `--dry-run` and perform production
 publication. Never print or commit the API key. Published package versions are

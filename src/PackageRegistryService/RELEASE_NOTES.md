@@ -91,6 +91,8 @@ published with unclear semantics.
   fields, invalid shapes, public JSON, normalized storage, client conversion,
   and website rendering with automated tests.
 - Report the exact running service revision and release channel.
+- Initialize and seed a schema-less database on `dev`-channel deployments while
+  leaving existing schemas and every other deployment channel untouched.
 
 ### Database
 
