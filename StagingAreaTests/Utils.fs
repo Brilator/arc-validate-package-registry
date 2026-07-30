@@ -1,7 +1,8 @@
 ﻿module Utils
 
-open AVPRIndex
-open AVPRIndex.Domain
+open AVPR.Staging
+open ValidationPackage.Codecs
+open ValidationPackage.Model
 open Xunit
 open System 
 open System.IO
@@ -69,6 +70,16 @@ module internal Compiler =
         )
 
 type Assert with
+
+    static member MetadataValid(metadata: ValidationPackageMetadata) =
+        Assert.NotNull(metadata)
+        Assert.False(String.IsNullOrWhiteSpace(metadata.Name))
+        Assert.False(String.IsNullOrWhiteSpace(metadata.Summary))
+        Assert.False(String.IsNullOrWhiteSpace(metadata.Description))
+        Assert.True(metadata.MajorVersion >= 0)
+        Assert.True(metadata.MinorVersion >= 0)
+        Assert.True(metadata.PatchVersion >= 0)
+        Assert.False(String.IsNullOrWhiteSpace(metadata.ProgrammingLanguage))
 
     static member FSharpScriptCompiles (scriptPath: string) =
         let safeScriptName =
@@ -191,18 +202,20 @@ type Assert with
         Assert.Equal(0, result.ExitCode)
 
     static member ContainsFSharpFrontmatter (script: string) =
-        let containsCommentFrontmatter = script.StartsWith(Frontmatter.FSharp.frontMatterCommentStart, StringComparison.Ordinal) && script.Contains(Frontmatter.FSharp.frontMatterCommentEnd)
-        let containsBindingFrontmatter = script.StartsWith(Frontmatter.FSharp.frontmatterBindingStart, StringComparison.Ordinal) && script.Contains(Frontmatter.FSharp.frontmatterBindingEnd)
+        let containsCommentFrontmatter = script.StartsWith(Frontmatter.FSharpCommentStart, StringComparison.Ordinal) && script.Contains(Frontmatter.FSharpCommentEnd)
+        let containsBindingFrontmatter = script.StartsWith(Frontmatter.FSharpBindingStart, StringComparison.Ordinal) && script.Contains(Frontmatter.FSharpBindingEnd)
         Assert.True(containsCommentFrontmatter || containsBindingFrontmatter)
 
     static member ContainsPythonFrontmatter (script: string) =
-        let containsCommentFrontmatter = script.StartsWith(Frontmatter.Python.frontMatterCommentStart, StringComparison.Ordinal) && script.Contains(Frontmatter.Python.frontMatterCommentEnd)
-        let containsBindingFrontmatter = script.StartsWith(Frontmatter.Python.frontmatterBindingStart, StringComparison.Ordinal) && script.Contains(Frontmatter.Python.frontmatterBindingEnd)
+        let containsCommentFrontmatter = script.StartsWith(Frontmatter.PythonCommentStart, StringComparison.Ordinal) && script.Contains(Frontmatter.PythonCommentEnd)
+        let containsBindingFrontmatter = script.StartsWith(Frontmatter.PythonBindingStart, StringComparison.Ordinal) && script.Contains(Frontmatter.PythonBindingEnd)
         Assert.True(containsCommentFrontmatter || containsBindingFrontmatter)
 
 
     static member FileNameValid(path:string) =
         let fileName = Path.GetFileName(path)
         let folderName = Path.GetDirectoryName(path) |> Path.GetFileName
-        let pattern = sprintf @"^%s@%s\.(fsx|py)$" folderName AVPRIndex.Globals.SEMVER_REGEX_PATTERN[1.. (AVPRIndex.Globals.SEMVER_REGEX_PATTERN.Length - 2)] // first and last characters of that regex are start/end signifiers
+        let semanticVersionPattern =
+            StagingConstants.SemanticVersionPattern[1.. (StagingConstants.SemanticVersionPattern.Length - 2)]
+        let pattern = sprintf @"^%s@%s\.(fsx|py)$" folderName semanticVersionPattern
         Assert.Matches(pattern, fileName)

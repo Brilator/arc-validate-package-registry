@@ -22,12 +22,12 @@ let private packProject project =
                 { options.MSBuildParams with
                     DisableInternalBinLog = true } })
 
-let packIndex = BuildTask.create "PackIndex" [ cleanPackages ] {
-    packProject indexProject
-}
-
 let packClient = BuildTask.create "PackClient" [ cleanPackages ] {
     packProject clientProject
+}
+
+let packClientInterop = BuildTask.create "PackClientInterop" [ cleanPackages ] {
+    packProject clientInteropProject
 }
 
 let packModel = BuildTask.create "PackModel" [ cleanPackages ] {
@@ -37,6 +37,9 @@ let packModel = BuildTask.create "PackModel" [ cleanPackages ] {
 let packCodecs = BuildTask.create "PackCodecs" [ cleanPackages ] {
     packProject codecsProject
 }
+
+let packClientPackages =
+    BuildTask.createEmpty "PackClientPackages" [ packClient; packModel; packClientInterop ]
 
 let packPortablePackages =
     BuildTask.createEmpty "PackPortablePackages" [ packModel; packCodecs ]

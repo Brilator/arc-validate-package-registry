@@ -1,4 +1,4 @@
-let [<Literal>]PACKAGE_METADATA = """(*
+"""
 ---
 Name: valid
 MajorVersion: 1
@@ -10,4 +10,4 @@ Description: |
   It does it very good, it does it very well.
   It does it very fast, it does it very swell.
 ---
-*)"""
+"""

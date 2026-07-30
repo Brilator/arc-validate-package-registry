@@ -2,12 +2,11 @@
 
 ## Status and planning policy
 
-**Status:** implementation underway. The portable `ValidationPackage.Model`
-and `ValidationPackage.Codecs` slices of AVPR #111 are implemented. The
-focused `AVPR.Staging` boundary and its AVPRCI/service consumer migrations are
-implemented, as are the service-owned API/EF models from AVPR #113. Client
-interop, final `AVPRIndex` retirement, and the remaining roadmap work are
-pending.
+**Status:** implementation underway. The AVPR-side portable model/codecs,
+focused staging boundary, service-owned API/EF models, and generated-client
+interop are implemented, and the `AVPRIndex` source package is retired.
+Milestone 1 is not fully complete until ARCExpect migrates from its existing
+`AVPRIndex` package dependency under arc-validate #242.
 
 GitHub tracking:
 
@@ -183,7 +182,7 @@ Outcome:
 - `AVPRClient` no longer brings YAML or staging dependencies transitively.
 - The service owns its public and stored representations while the portable
   model stays infrastructure-free.
-- `AVPRIndex` can be deprecated and removed.
+- `AVPRIndex` is removed.
 
 ### Milestone 2 — Prepare ARCExpect outputs without waiting for Pyxpecto
 

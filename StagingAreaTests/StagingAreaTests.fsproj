@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Include="playground.fsx" />
+    <None Include="fixtures\**" CopyToOutputDirectory="Always" />
     <Content Include="..\StagingArea\**" CopyToOutputDirectory="Always" LinkBase="StagingArea" />
     <Compile Include="Utils.fs" />
     <Compile Include="ReferenceObjects.fs" />
@@ -35,8 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\AVPRIndex\AVPRIndex.fsproj" />
-    <ProjectReference Include="..\tests\IndexTests\IndexTests.fsproj" />
+    <ProjectReference Include="..\src\AVPR.Staging\AVPR.Staging.fsproj" />
+    <ProjectReference Include="..\src\ValidationPackage.Codecs\ValidationPackage.Codecs.fsproj" />
+    <ProjectReference Include="..\src\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
   </ItemGroup>
 
 </Project>

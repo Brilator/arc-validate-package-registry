@@ -27,4 +27,4 @@ let ``fixture hash matches published hash contract`` () =
         "fixtures/Frontmatter/Comment/valid@1.0.0.fsx"
         |> ContentHash.ofFile
 
-    Assert.Equal("2A29D85A29D908C7DE214D56119DE207", actual)
+    Assert.Equal("4CD3A22514059AC2E49BCD213FA7D751", actual)

@@ -1,5 +1,6 @@
 ## v0.3.0
-- Regenerate the client for the supported CWL v1.2 scalar `Inputs` contract and add bidirectional mappings for input types, parameters, and bindings.
+- Regenerate the client for the supported CWL v1.2 scalar `Inputs` contract.
+- Move all handwritten model and staging mappings to `AVPRClient.Interop` and `AVPRCI`, leaving this package generated-only.
 
 ## v0.2.1
 - fix : Correct `ProgrammingLanguage` field mapping in `ValidationPackage` type extension.

@@ -5,7 +5,7 @@ open System.IO
 open Xunit
 open Utils
 
-open AVPRIndex
+open AVPR.Staging
 
 module Metadata =
     
@@ -15,7 +15,9 @@ module Metadata =
             ReferenceObjects.all_staged_fsharp_packages_paths,
             (fun path ->
                 let file_name_version = (Path.GetFileNameWithoutExtension path).Split('@')[1]
-                let metadata_version = path |> ValidationPackageMetadata.extractFromScript |> ValidationPackageMetadata.getSemanticVersionString
+                let metadata_version =
+                    StagedValidationPackage.fromFile path DateTimeOffset.UtcNow
+                    |> StagedValidationPackage.getSemanticVersionString
                 Assert.Equal(file_name_version, metadata_version)
             )
         )
@@ -26,7 +28,9 @@ module Metadata =
             ReferenceObjects.all_staged_python_packages_paths,
             (fun path ->
                 let file_name_version = (Path.GetFileNameWithoutExtension path).Split('@')[1]
-                let metadata_version = path |> ValidationPackageMetadata.extractFromScript |> ValidationPackageMetadata.getSemanticVersionString
+                let metadata_version =
+                    StagedValidationPackage.fromFile path DateTimeOffset.UtcNow
+                    |> StagedValidationPackage.getSemanticVersionString
                 Assert.Equal(file_name_version, metadata_version)
             )
         )

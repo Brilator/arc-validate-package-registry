@@ -1,10 +1,6 @@
 ﻿module ReferenceObjects
 
 open System.IO
-open Xunit
-open AVPRIndex
-open AVPRIndex.Domain
-open AVPRIndex.Frontmatter
 
 // all packages are copied into the tesp assembly output, see project file
 let staging_area_root = "StagingArea"

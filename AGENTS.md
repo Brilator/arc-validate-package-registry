@@ -12,12 +12,12 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `StagingAreaTests/`: package layout, metadata, naming, and script sanity checks.
 - `src/ValidationPackage.Model/`: portable metadata, CWL inputs, package identity, and SemVer behavior for .NET and Fable.
 - `src/ValidationPackage.Codecs/`: portable YAML frontmatter and JSON codecs for the shared model.
-- `src/AVPRIndex/`: F# domain types and utilities for package metadata, frontmatter, hashes, and indexes.
 - `src/AVPR.Staging/`: internal staged-package discovery, normalized content, and content hashing built on the portable model/codecs.
 - `src/AVPRClient/`: generated/consumer-facing .NET API client.
+- `src/AVPRClient.Interop/`: explicit mappings between generated client DTOs and the portable model.
 - `src/AVPRCI/`: CLI used to publish packages.
 - `src/PackageRegistryService/`: ASP.NET Core registry API, website, database model, and migrations.
-- `tests/`: tests for the index, client, and API.
+- `tests/`: tests for the portable model/codecs, staging infrastructure, client interop, and API.
 - `build/`: FAKE/BlackFox build project containing local and CI build, test, and pack targets.
 - `.github/workflows/pipeline.yml`: change detection and orchestration for tests and releases.
 - `.github/workflows/run-build-target.yml`: reusable cross-platform build-target runner.
@@ -40,11 +40,11 @@ The pinned SDK is in `global.json` (currently .NET 10). Python package execution
 # Produce one release artifact under artifacts/packages
 .\build.cmd PackModel
 .\build.cmd PackCodecs
-.\build.cmd PackIndex
 .\build.cmd PackClient
+.\build.cmd PackClientInterop
 
 # Focused test projects
-dotnet test tests/IndexTests/IndexTests.fsproj
+dotnet test tests/AVPR.Staging.Tests/AVPR.Staging.Tests.fsproj
 dotnet test tests/ClientTests/ClientTests.fsproj
 dotnet test tests/APITests/APITests.csproj
 dotnet test StagingAreaTests/StagingAreaTests.fsproj
@@ -140,12 +140,13 @@ are a regular executable, not a VSTest project:
 
 Validation package metadata changes commonly require coordinated edits in:
 
-- `src/AVPRIndex/Domain.fs`
+- `src/ValidationPackage.Model/`
+- `src/ValidationPackage.Codecs/` when YAML or domain JSON is affected
 - `src/PackageRegistryService/Models/ValidationPackage.cs`
 - `src/PackageRegistryService/Models/ValidationPackageDb.cs` (register owned-JSON collection fields with `OwnsMany(...).ToJson()`)
 - `src/PackageRegistryService/Data/DataInitializer.cs`
 - Entity Framework migrations under `src/PackageRegistryService/Migrations/`
-- generated client code in `src/AVPRClient/AVPRClient.cs` **and** the index↔client mapping in `src/AVPRClient/Extensions.cs` (easy to miss)
+- generated client code in `src/AVPRClient/AVPRClient.cs` **and** portable mappings in `src/AVPRClient.Interop/Mappings.cs` (easy to miss)
 - website rendering under `src/PackageRegistryService/Pages/Components/` when a field should be shown
 - frontmatter/metadata tests and README documentation
 
@@ -162,14 +163,14 @@ Search for every use of the changed field before editing. Do not hand-author a m
 
 Trace a metadata field through every representation it affects; a green build alone does not prove parsing or mapping behavior.
 
-- In `tests/IndexTests/ReferenceObjects.fs`, maintain mandatory/default and all-fields domain objects, full source frontmatter, extracted YAML, expected parsed metadata, and content-hash constants.
-- Exercise the field's factory/default/equality behavior in `DomainTests.fs`. In `MetadataTests.fs` and the fixtures under `tests/IndexTests/fixtures/Frontmatter/`, cover the applicable comment/binding and F#/Python combinations. Preserve a no-field case for optional-field backwards compatibility, and add focused negative or unknown-key cases when parser policy changes.
-- Fixture byte changes require recomputing the corresponding MD5 values and updating expected packages in `ValidationPackageIndexTests.fs`. Verify both metadata and hashes.
-- In `tests/ClientTests/`, keep equivalent index and generated-client reference objects. Test index-to-client and client-to-index mappings, nested collection conversion, and null/empty behavior in `TypeExtensionsTests.fs`. Add a dedicated serialized-content fixture when needed, but retain older fixtures without a new optional field.
-- Run `PackageStagingArea.sln` when submitted-package syntax or sanity checks are affected. Prefer small index/staging-test fixtures; add a real staged package only when the real layout must be exercised, always as a new semantic version and only after reading it.
+- In `tests/ValidationPackage.Model.Tests/`, exercise factory/default/equality and semantic-version behavior across .NET, JavaScript, and Python.
+- In `tests/ValidationPackage.Codecs.Tests/`, cover full and mandatory metadata, comment/binding frontmatter, F#/Python forms, optional-field backwards compatibility, malformed values, and unknown-key policy.
+- In `tests/AVPR.Staging.Tests/`, verify normalized content and hashes. Fixture byte changes require recomputing expected hashes from the actual content.
+- In `tests/ClientTests/`, keep equivalent portable-model and generated-client reference objects. Test both mapping directions, nested collection conversion, null/empty behavior, CWL scalar variants, and full SemVer suffixes in `TypeExtensionsTests.fs`.
+- Run `PackageStagingArea.sln` when submitted-package syntax or sanity checks are affected. Prefer small codec/staging fixtures; add a real staged package only when the real layout must be exercised, always as a new semantic version and only after reading it.
 - For service/client contract behavior, follow the shared in-process test-host design below. Explicitly verify migrations and backfills against Postgres, along with seeded JSON persistence and both present/absent website rendering cases when those behaviors change.
 
-Use focused index/client tests while iterating, then run the main solution and, when package syntax is affected, the staging solution. Recompute expected values from actual fixture content instead of weakening assertions.
+Use focused model/codec/staging/client tests while iterating, then run the main solution and, when package syntax is affected, the staging solution. Recompute expected values from actual fixture content instead of weakening assertions.
 
 ## In-process registry test host
 

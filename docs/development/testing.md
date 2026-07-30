@@ -24,7 +24,7 @@ handoff.
 ./build.sh TestPortableCodecs
 
 # Focused suites
-dotnet test tests/IndexTests/IndexTests.fsproj --configuration Release
+dotnet test tests/AVPR.Staging.Tests/AVPR.Staging.Tests.fsproj --configuration Release
 dotnet test tests/ClientTests/ClientTests.fsproj --configuration Release
 dotnet test tests/APITests/APITests.csproj --configuration Release
 dotnet test StagingAreaTests/StagingAreaTests.fsproj --configuration Release
@@ -84,16 +84,18 @@ A metadata field crosses multiple representations. A green build alone does
 not prove parsing or wire behavior.
 
 1. **Domain behavior:** update mandatory/default and all-fields reference values
-   in `tests/IndexTests/ReferenceObjects.fs`. Cover factories, defaults,
-   equality, and hashing in `DomainTests.fs`.
+   in `tests/ValidationPackage.Model.Tests/`. Cover factories, defaults,
+   equality, and semantic-version behavior on .NET, JavaScript, and Python.
 2. **Frontmatter:** update full source, extracted YAML, expected metadata, and
-   fixtures for F#/Python comment and binding forms. Preserve a no-field case
-   for optional-field compatibility and add focused malformed cases.
-3. **Hashes and indexes:** recompute hashes whenever fixture bytes change and
-   update expected package indexes. Verify both metadata and hash values.
+   fixtures in `tests/ValidationPackage.Codecs.Tests/` for F#/Python comment
+   and binding forms. Preserve a no-field case for optional-field compatibility
+   and add focused malformed cases.
+3. **Hashes and staging:** recompute hashes whenever fixture bytes change and
+   update `tests/AVPR.Staging.Tests/`. Verify both metadata and hash values.
 4. **Generated client:** regenerate from the local service OpenAPI document,
-   maintain equivalent client/index reference objects, and test both mapping
-   directions, nested collections, and null/empty behavior.
+   maintain equivalent client/model reference objects, and test both mapping
+   directions, nested collections, null/empty behavior, CWL scalars, and full
+   semantic-version suffixes.
 5. **Staging compatibility:** run `PackageStagingArea.sln` when submitted script
    syntax or checks are affected. Add a real staged package only when layout
    itself must be exercised, always under a new semantic version.

@@ -2,7 +2,10 @@
 
 .NET client library for https://avpr.nfdi4plants.org.
  
-Generated with NSwag based on the OpenAPI specification.
+Generated with NSwag based on the OpenAPI specification. This package contains
+only generated transport code and its JSON dependency. Applications that need
+portable validation-package types should reference `AVPRClient.Interop`
+explicitly.
 
 ## Usage
 

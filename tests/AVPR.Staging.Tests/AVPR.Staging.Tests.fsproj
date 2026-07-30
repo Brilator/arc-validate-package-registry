@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\IndexTests\fixtures\**" Link="fixtures\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Always" />
-    <Content Include="..\IndexTests\fixtures\Frontmatter\Comment\valid@1.0.0.fsx" Link="StagingArea\fsharp\valid@1.0.0.fsx" CopyToOutputDirectory="Always" />
-    <Content Include="..\IndexTests\fixtures\Frontmatter\Comment\valid@1.0.0.py" Link="StagingArea\python\valid@1.0.0.py" CopyToOutputDirectory="Always" />
+    <None Include="..\Fixtures\**" Link="fixtures\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Always" />
+    <Content Include="..\Fixtures\Frontmatter\Comment\valid@1.0.0.fsx" Link="StagingArea\fsharp\valid@1.0.0.fsx" CopyToOutputDirectory="Always" />
+    <Content Include="..\Fixtures\Frontmatter\Comment\valid@1.0.0.py" Link="StagingArea\python\valid@1.0.0.py" CopyToOutputDirectory="Always" />
     <Compile Include="NormalizedContentTests.fs" />
     <Compile Include="StagedValidationPackageTests.fs" />
     <Compile Include="StagingRepositoryTests.fs" />

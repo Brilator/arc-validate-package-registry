@@ -48,13 +48,19 @@ Description: A longer explanation of the validation behavior.
 *)"""
 ```
 
-For example, a script using `AVPRIndex` can extract it without repeating the
-package identity:
+For example, a script using the portable model and codecs can extract it
+without repeating the package identity:
 
 ```fsharp
-#r "nuget: AVPRIndex"
+#r "nuget: ValidationPackage.Model"
+#r "nuget: ValidationPackage.Codecs"
 
-let metadata = ValidationPackageMetadata.extractFromString PACKAGE_METADATA
+open ValidationPackage.Codecs
+
+let metadata =
+    ValidationPackageYaml.extractOrFail
+        FrontmatterLanguage.FSharp
+        PACKAGE_METADATA
 ```
 
 The binding must be at the start of the file and use the exact name

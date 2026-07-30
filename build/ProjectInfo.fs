@@ -9,8 +9,8 @@ let stagingSolution = "PackageStagingArea.sln"
 
 let modelProject = "src/ValidationPackage.Model/ValidationPackage.Model.fsproj"
 let codecsProject = "src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj"
-let indexProject = "src/AVPRIndex/AVPRIndex.fsproj"
 let clientProject = "src/AVPRClient/AVPRClient.csproj"
+let clientInteropProject = "src/AVPRClient.Interop/AVPRClient.Interop.csproj"
 
 let modelTestsProject = "tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj"
 let modelPackageSmokeProject = "tests/ValidationPackage.Model.PackageSmoke/ValidationPackage.Model.PackageSmoke.fsproj"

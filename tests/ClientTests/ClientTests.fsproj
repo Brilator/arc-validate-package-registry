@@ -31,12 +31,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AVPRClient\AVPRClient.csproj" />
-    <ProjectReference Include="..\..\src\AVPRIndex\AVPRIndex.fsproj" />
+    <ProjectReference Include="..\..\src\AVPRClient.Interop\AVPRClient.Interop.csproj" />
+    <ProjectReference Include="..\..\src\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
     <ProjectReference Include="..\PackageRegistryTestHost\PackageRegistryTestHost.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="fixtures\**" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

@@ -36,8 +36,11 @@ jobs:
       client_all_modified_files: ${{ steps.changed-files-yaml.outputs.client_all_modified_files }}
       client_any_modified: ${{ steps.changed-files-yaml.outputs.client_any_modified }}
 
-      index_all_modified_files: ${{ steps.changed-files-yaml.outputs.index_all_modified_files }}
-      index_any_modified: ${{ steps.changed-files-yaml.outputs.index_any_modified }}
+      client_interop_all_modified_files: ${{ steps.changed-files-yaml.outputs.client_interop_all_modified_files }}
+      client_interop_any_modified: ${{ steps.changed-files-yaml.outputs.client_interop_any_modified }}
+
+      staging_all_modified_files: ${{ steps.changed-files-yaml.outputs.staging_all_modified_files }}
+      staging_any_modified: ${{ steps.changed-files-yaml.outputs.staging_any_modified }}
 
       model_all_modified_files: ${{ steps.changed-files-yaml.outputs.model_all_modified_files }}
       model_any_modified: ${{ steps.changed-files-yaml.outputs.model_any_modified }}
@@ -50,8 +53,8 @@ jobs:
 
       # trigger other jobs
       trigger-build-and-test-projects: ${{steps.set-triggers.outputs.trigger-build-and-test-projects}}
-      trigger-release-index: ${{steps.set-triggers.outputs.trigger-release-index}}
       trigger-release-client: ${{steps.set-triggers.outputs.trigger-release-client}}
+      trigger-release-client-interop: ${{steps.set-triggers.outputs.trigger-release-client-interop}}
       trigger-release-api: ${{steps.set-triggers.outputs.trigger-release-api}}
       trigger-release-model: ${{steps.set-triggers.outputs.trigger-release-model}}
       trigger-release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}
@@ -84,8 +87,9 @@ jobs:
               - src/PackageRegistryService/**
             client:
               - src/AVPRClient/**
-            index:
-              - src/AVPRIndex/**
+            client_interop:
+              - src/AVPRClient.Interop/**
+            staging:
               - src/AVPR.Staging/**
               - src/AVPRCI/**
               - tests/AVPR.Staging.Tests/**
@@ -131,9 +135,9 @@ jobs:
       - name: set triggers
         id: set-triggers
         run: |
-          echo "trigger-build-and-test-projects=${{ steps.changed-files-yaml.outputs.tests_any_modified == 'true' || steps.changed-files-yaml.outputs.api_any_modified == 'true' || steps.changed-files-yaml.outputs.client_any_modified == 'true' || steps.changed-files-yaml.outputs.index_any_modified == 'true' || steps.changed-files-yaml.outputs.model_any_modified == 'true' || steps.changed-files-yaml.outputs.codecs_any_modified == 'true'}}" >> $GITHUB_OUTPUT
-          echo "trigger-release-index=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.index_all_modified_files, 'src/AVPRIndex/RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
+          echo "trigger-build-and-test-projects=${{ steps.changed-files-yaml.outputs.tests_any_modified == 'true' || steps.changed-files-yaml.outputs.api_any_modified == 'true' || steps.changed-files-yaml.outputs.client_any_modified == 'true' || steps.changed-files-yaml.outputs.client_interop_any_modified == 'true' || steps.changed-files-yaml.outputs.staging_any_modified == 'true' || steps.changed-files-yaml.outputs.model_any_modified == 'true' || steps.changed-files-yaml.outputs.codecs_any_modified == 'true'}}" >> $GITHUB_OUTPUT
           echo "trigger-release-client=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.client_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
+          echo "trigger-release-client-interop=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.client_interop_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-model=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.model_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-codecs=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.codecs_all_modified_files, 'src/ValidationPackage.Codecs/RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-test-staging-area=${{steps.changed-files-yaml.outputs.packages_any_modified == 'true' && steps.decide-on-dry-run.outputs.dry_run == 'false'}}" >> $GITHUB_OUTPUT
@@ -159,9 +163,12 @@ jobs:
           echo "client:"
           echo "- any: ${{ steps.changed-files-yaml.outputs.client_any_modified }}"
           echo "- all: ${{ steps.changed-files-yaml.outputs.client_all_modified_files }}"
-          echo "index:"
-          echo "- any: ${{ steps.changed-files-yaml.outputs.index_any_modified }}"
-          echo "- all: ${{ steps.changed-files-yaml.outputs.index_all_modified_files }}"
+          echo "client interop:"
+          echo "- any: ${{ steps.changed-files-yaml.outputs.client_interop_any_modified }}"
+          echo "- all: ${{ steps.changed-files-yaml.outputs.client_interop_all_modified_files }}"
+          echo "staging infrastructure:"
+          echo "- any: ${{ steps.changed-files-yaml.outputs.staging_any_modified }}"
+          echo "- all: ${{ steps.changed-files-yaml.outputs.staging_all_modified_files }}"
           echo "portable model:"
           echo "- any: ${{ steps.changed-files-yaml.outputs.model_any_modified }}"
           echo "- all: ${{ steps.changed-files-yaml.outputs.model_all_modified_files }}"
@@ -171,8 +178,8 @@ jobs:
           echo "computed outputs:"
           echo "dry run: ${{ steps.decide-on-dry-run.outputs.dry_run }}"
           echo "trigger build-and-test-projects: ${{steps.set-triggers.outputs.trigger-build-and-test-projects}}"
-          echo "trigger release-index: ${{steps.set-triggers.outputs.trigger-release-index}}"
           echo "trigger release-client: ${{steps.set-triggers.outputs.trigger-release-client}}"
+          echo "trigger release-client-interop: ${{steps.set-triggers.outputs.trigger-release-client-interop}}"
           echo "trigger release-model: ${{steps.set-triggers.outputs.trigger-release-model}}"
           echo "trigger release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}"
           echo "trigger release-api: ${{steps.set-triggers.outputs.trigger-release-api}}"
@@ -184,8 +191,8 @@ jobs:
         run: |
           echo "this should trigger the following jobs:"
           echo "build-and-test-projects: ${{steps.set-triggers.outputs.trigger-build-and-test-projects}}"
-          echo "release-index: ${{steps.set-triggers.outputs.trigger-release-index}}"
           echo "release-client: ${{steps.set-triggers.outputs.trigger-release-client}}"
+          echo "release-client-interop: ${{steps.set-triggers.outputs.trigger-release-client-interop}}"
           echo "release-model: ${{steps.set-triggers.outputs.trigger-release-model}}"
           echo "release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}"
           echo "release-api: ${{steps.set-triggers.outputs.trigger-release-api}}"
@@ -205,19 +212,6 @@ jobs:
       ubuntu: true
       macos: true
 
-  release-index-package:
-    name: "Release index package"
-    needs: [setup, build-and-test-projects]
-    if: needs.setup.outputs.trigger-release-index == 'true'
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/release-package.yml
-    with:
-      target: PackIndex
-    secrets:
-      NUGET_USER: ${{ secrets.NUGET_USER }}
-
   release-client-package:
     name: "Release client package"
     needs: [setup, build-and-test-projects]
@@ -228,6 +222,19 @@ jobs:
     uses: ./.github/workflows/release-package.yml
     with:
       target: PackClient
+    secrets:
+      NUGET_USER: ${{ secrets.NUGET_USER }}
+
+  release-client-interop-package:
+    name: "Release client interop package"
+    needs: [setup, build-and-test-projects]
+    if: needs.setup.outputs.trigger-release-client-interop == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
+    with:
+      target: PackClientInterop
     secrets:
       NUGET_USER: ${{ secrets.NUGET_USER }}
 

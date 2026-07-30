@@ -76,8 +76,21 @@ initialization path.
 
 ## NuGet releases
 
-For `ValidationPackage.Model`, `ValidationPackage.Codecs`, `AVPRIndex`, or
-`AVPRClient`:
+### AVPRIndex retirement
+
+`AVPRIndex` is retired and is no longer built or published from this
+repository. Existing versions on NuGet remain available for compatibility but
+receive no further updates. Consumers should use `ValidationPackage.Model` for
+domain types, `ValidationPackage.Codecs` for YAML/frontmatter and domain JSON,
+and `AVPR.Staging` only for registry-side staged-package infrastructure.
+Generated-client consumers that need portable model conversion should use
+`AVPRClient.Interop`.
+
+Published validation-package scripts that reference an existing `AVPRIndex`
+version remain immutable and continue to resolve that historical package.
+
+For `ValidationPackage.Model`, `ValidationPackage.Codecs`, `AVPRClient`, or
+`AVPRClient.Interop`:
 
 1. Update its project package version. For `ValidationPackage.Model`, update
    the version in the packed-package smoke project's `PackageReference` too.
@@ -89,6 +102,10 @@ For `ValidationPackage.Model`, `ValidationPackage.Codecs`, `AVPRIndex`, or
 5. Merge to `main`; the pipeline publishes the package when its release-note
    trigger and other gates pass. The model release additionally requires its
    cross-target and packed-consumer checks.
+
+Use `PackClientInterop` to inspect the interop package locally. It is released
+independently from the generated client so consumers can opt into the portable
+model dependency without adding it to every `AVPRClient` installation.
 
 NuGet publishing is keyless. The reusable release job enters the `release`
 GitHub environment, requests an OIDC token, and exchanges it through

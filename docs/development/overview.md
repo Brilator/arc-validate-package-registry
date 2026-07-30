@@ -16,8 +16,9 @@
 - Node.js and `uv` when developing the portable model or checking Python
   validation packages
 
-The main solution contains the registry service, index and client libraries,
-CLI, and their tests. `PackageStagingArea.sln` contains the staging-area checks.
+The main solution contains the registry service, portable model/codecs,
+generated client and interop, staging infrastructure, CLI, and their tests.
+`PackageStagingArea.sln` contains the staging-area checks.
 
 ## Documentation
 
@@ -34,10 +35,10 @@ Swagger or `/_version`.
 ## Libraries
 
 `ValidationPackage.Model` is the codec-free domain contract shared by .NET and
-Fable consumers. `AVPRIndex` retains the current registry domain types during
-the additive migration and contains frontmatter parsing, hashing, and index
-utilities. `AVPRClient` is the generated and consumer-facing .NET client for
-the registry API.
+Fable consumers. `ValidationPackage.Codecs` owns portable YAML/frontmatter and
+JSON conversion, while `AVPR.Staging` owns repository traversal, normalized
+content, and hashing. `AVPRClient` is the generated .NET registry client;
+`AVPRClient.Interop` provides opt-in mappings to the portable model.
 
 Build or test them through the main solution:
 
@@ -124,11 +125,12 @@ stop`.
 A validation-package metadata field commonly crosses several projects. Search
 for every use and update the relevant layers:
 
-- `src/AVPRIndex/Domain.fs` and frontmatter conversion;
+- `src/ValidationPackage.Model/` and, for serialized metadata,
+  `src/ValidationPackage.Codecs/`;
 - `src/PackageRegistryService/Models/ValidationPackage.cs`;
 - Entity Framework ownership in `ValidationPackageDb.cs`;
 - database seeding in `DataInitializer.cs`;
-- generated client code and index/client mappings;
+- generated client code and `AVPRClient.Interop` mappings;
 - website rendering when the field is user-facing;
 - fixtures, hashes, contract tests, and documentation.
 

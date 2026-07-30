@@ -14,8 +14,8 @@ The repository contains:
   the shared model on .NET, JavaScript, and Python;
 - `src/AVPR.Staging/`: internal repository discovery, normalized content, and
   content hashing for staged validation packages;
-- `src/AVPRIndex/`: package metadata, frontmatter, hashing, and index utilities;
 - `src/AVPRClient/`: the generated .NET registry client;
+- `src/AVPRClient.Interop/`: optional mappings between generated client DTOs and the portable model;
 - `src/AVPRCI/`: publication tooling;
 - `src/PackageRegistryService/`: the registry API and package-browser website;
 - `build/`: the cross-platform build project used by local development and CI;

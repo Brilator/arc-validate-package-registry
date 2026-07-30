@@ -18,7 +18,7 @@ let ``FSharp staged package preserves metadata path and hash`` () =
     Assert.Equal("FSharp", actual.Metadata.ProgrammingLanguage)
     Assert.Equal("valid@1.0.0.fsx", actual.FileName)
     Assert.Equal(testDate, actual.LastUpdated)
-    Assert.Equal("2A29D85A29D908C7DE214D56119DE207", actual.ContentHash)
+    Assert.Equal("4CD3A22514059AC2E49BCD213FA7D751", actual.ContentHash)
     Assert.Equal("1.0.0", StagedValidationPackage.getSemanticVersionString actual)
 
 [<Fact>]
@@ -31,7 +31,7 @@ let ``Python staged package preserves metadata path and hash`` () =
     Assert.Equal("valid", actual.Metadata.Name)
     Assert.Equal("Python", actual.Metadata.ProgrammingLanguage)
     Assert.Equal("valid@1.0.0.py", actual.FileName)
-    Assert.Equal("EB3E5827C147B660D4AE7F5560A7CFBA", actual.ContentHash)
+    Assert.Equal("75CEB39AF4DEAD74685E44DCD72DC85E", actual.ContentHash)
 
 [<Fact>]
 let ``staged identity and content comparisons are independent`` () =

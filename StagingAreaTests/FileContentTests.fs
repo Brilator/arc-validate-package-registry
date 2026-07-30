@@ -5,7 +5,7 @@ open System.IO
 open Xunit
 open Utils
 
-open AVPRIndex
+open AVPR.Staging
 
 module FileContent =
 
@@ -21,9 +21,8 @@ module FileContent =
         Assert.All(
             ReferenceObjects.all_staged_fsharp_packages_paths,
             (fun p -> 
-                p
-                |> ValidationPackageMetadata.extractFromScript
-                |> Assert.MetadataValid
+                StagedValidationPackage.fromFile p DateTimeOffset.UtcNow
+                |> fun stagedPackage -> Assert.MetadataValid stagedPackage.Metadata
             )
         )
 
@@ -40,8 +39,7 @@ module FileContent =
         Assert.All(
             ReferenceObjects.all_staged_python_packages_paths,
             (fun p -> 
-                p
-                |> ValidationPackageMetadata.extractFromScript
-                |> Assert.MetadataValid
+                StagedValidationPackage.fromFile p DateTimeOffset.UtcNow
+                |> fun stagedPackage -> Assert.MetadataValid stagedPackage.Metadata
             )
         )
