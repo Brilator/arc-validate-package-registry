@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:model:js": "node artifacts/model-tests/js/Main.js"
+    "test:model:js": "node artifacts/model-tests/js/Main.js",
+    "test:codecs:js": "node artifacts/codec-tests-js/Main.js"
   }
 }

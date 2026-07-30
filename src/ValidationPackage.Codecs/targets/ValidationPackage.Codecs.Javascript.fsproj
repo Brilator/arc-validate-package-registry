@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <DefineConstants>FABLE_COMPILER;FABLE_COMPILER_JAVASCRIPT;FABLE_COMPILER_TYPESCRIPT</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Keep this source list and order synchronized with the .NET and Python projects. -->
+  <ItemGroup>
+    <Compile Include="..\..\ValidationPackage.Model\PortableHash.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\SemanticVersion.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\ValidationPackageIdentity.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\Cwl.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\Author.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\OntologyAnnotation.fs" />
+    <Compile Include="..\..\ValidationPackage.Model\ValidationPackageMetadata.fs" />
+    <Compile Include="..\FrontmatterLanguage.fs" />
+    <Compile Include="..\Frontmatter.fs" />
+    <Compile Include="..\YamlValue.fs" />
+    <Compile Include="..\CwlYaml.fs" />
+    <Compile Include="..\AuthorYaml.fs" />
+    <Compile Include="..\OntologyAnnotationYaml.fs" />
+    <Compile Include="..\ValidationPackageYaml.fs" />
+    <Compile Include="..\JsonRuntime.fs" />
+    <Compile Include="..\CwlJson.fs" />
+    <Compile Include="..\AuthorJson.fs" />
+    <Compile Include="..\OntologyAnnotationJson.fs" />
+    <Compile Include="..\ValidationPackageJson.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="5.0.0" />
+    <PackageReference Include="YAMLicious" Version="1.0.0" />
+    <PackageReference Include="Thoth.Json.Core" Version="0.9.0" />
+  </ItemGroup>
+
+</Project>

@@ -42,6 +42,9 @@ jobs:
       model_all_modified_files: ${{ steps.changed-files-yaml.outputs.model_all_modified_files }}
       model_any_modified: ${{ steps.changed-files-yaml.outputs.model_any_modified }}
 
+      codecs_all_modified_files: ${{ steps.changed-files-yaml.outputs.codecs_all_modified_files }}
+      codecs_any_modified: ${{ steps.changed-files-yaml.outputs.codecs_any_modified }}
+
       # dry run so we can do manual diagnostics
       is_dry_run: ${{ steps.decide-on-dry-run.outputs.dry_run }}
 
@@ -51,9 +54,11 @@ jobs:
       trigger-release-client: ${{steps.set-triggers.outputs.trigger-release-client}}
       trigger-release-api: ${{steps.set-triggers.outputs.trigger-release-api}}
       trigger-release-model: ${{steps.set-triggers.outputs.trigger-release-model}}
+      trigger-release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}
 
       trigger-test-staging-area: ${{steps.set-triggers.outputs.trigger-test-staging-area}}
       trigger-test-portable-model: ${{steps.set-triggers.outputs.trigger-test-portable-model}}
+      trigger-test-portable-codecs: ${{steps.set-triggers.outputs.trigger-test-portable-codecs}}
 
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +90,15 @@ jobs:
               - package.json
               - pyproject.toml
               - uv.lock
+            codecs:
+              - src/ValidationPackage.Model/**
+              - src/ValidationPackage.Codecs/**
+              - tests/ValidationPackage.Codecs.Tests/**
+              - tests/ValidationPackage.Codecs.PackageSmoke/**
+              - .config/dotnet-tools.json
+              - package.json
+              - pyproject.toml
+              - uv.lock
 
       - name: decide on dry run
         id: decide-on-dry-run
@@ -101,12 +115,14 @@ jobs:
       - name: set triggers
         id: set-triggers
         run: |
-          echo "trigger-build-and-test-projects=${{ steps.changed-files-yaml.outputs.tests_any_modified == 'true' || steps.changed-files-yaml.outputs.api_any_modified == 'true' || steps.changed-files-yaml.outputs.client_any_modified == 'true' || steps.changed-files-yaml.outputs.index_any_modified == 'true' || steps.changed-files-yaml.outputs.model_any_modified == 'true'}}" >> $GITHUB_OUTPUT
+          echo "trigger-build-and-test-projects=${{ steps.changed-files-yaml.outputs.tests_any_modified == 'true' || steps.changed-files-yaml.outputs.api_any_modified == 'true' || steps.changed-files-yaml.outputs.client_any_modified == 'true' || steps.changed-files-yaml.outputs.index_any_modified == 'true' || steps.changed-files-yaml.outputs.model_any_modified == 'true' || steps.changed-files-yaml.outputs.codecs_any_modified == 'true'}}" >> $GITHUB_OUTPUT
           echo "trigger-release-index=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.index_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-client=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.client_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-model=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.model_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
+          echo "trigger-release-codecs=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.codecs_all_modified_files, 'src/ValidationPackage.Codecs/RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-test-staging-area=${{steps.changed-files-yaml.outputs.packages_any_modified == 'true' && steps.decide-on-dry-run.outputs.dry_run == 'false'}}" >> $GITHUB_OUTPUT
           echo "trigger-test-portable-model=${{steps.changed-files-yaml.outputs.model_any_modified == 'true'}}" >> $GITHUB_OUTPUT
+          echo "trigger-test-portable-codecs=${{steps.changed-files-yaml.outputs.codecs_any_modified == 'true'}}" >> $GITHUB_OUTPUT
           echo "trigger-release-api=${{github.event_name == 'push' && steps.decide-on-dry-run.outputs.dry_run == 'false' && steps.changed-files-yaml.outputs.api_any_modified == 'true' }}" >> $GITHUB_OUTPUT
           echo "$GITHUB_OUTPUT"
 
@@ -133,15 +149,20 @@ jobs:
           echo "portable model:"
           echo "- any: ${{ steps.changed-files-yaml.outputs.model_any_modified }}"
           echo "- all: ${{ steps.changed-files-yaml.outputs.model_all_modified_files }}"
+          echo "portable codecs:"
+          echo "- any: ${{ steps.changed-files-yaml.outputs.codecs_any_modified }}"
+          echo "- all: ${{ steps.changed-files-yaml.outputs.codecs_all_modified_files }}"
           echo "computed outputs:"
           echo "dry run: ${{ steps.decide-on-dry-run.outputs.dry_run }}"
           echo "trigger build-and-test-projects: ${{steps.set-triggers.outputs.trigger-build-and-test-projects}}"
           echo "trigger release-index: ${{steps.set-triggers.outputs.trigger-release-index}}"
           echo "trigger release-client: ${{steps.set-triggers.outputs.trigger-release-client}}"
           echo "trigger release-model: ${{steps.set-triggers.outputs.trigger-release-model}}"
+          echo "trigger release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}"
           echo "trigger release-api: ${{steps.set-triggers.outputs.trigger-release-api}}"
           echo "trigger test-staging-area: ${{steps.set-triggers.outputs.trigger-test-staging-area}}"
           echo "trigger test-portable-model: ${{steps.set-triggers.outputs.trigger-test-portable-model}}"
+          echo "trigger test-portable-codecs: ${{steps.set-triggers.outputs.trigger-test-portable-codecs}}"
 
       - name: list triggered jobs
         run: |
@@ -150,9 +171,11 @@ jobs:
           echo "release-index: ${{steps.set-triggers.outputs.trigger-release-index}}"
           echo "release-client: ${{steps.set-triggers.outputs.trigger-release-client}}"
           echo "release-model: ${{steps.set-triggers.outputs.trigger-release-model}}"
+          echo "release-codecs: ${{steps.set-triggers.outputs.trigger-release-codecs}}"
           echo "release-api: ${{steps.set-triggers.outputs.trigger-release-api}}"
           echo "test-staging-area: ${{steps.set-triggers.outputs.trigger-test-staging-area}}"
           echo "test-portable-model: ${{steps.set-triggers.outputs.trigger-test-portable-model}}"
+          echo "test-portable-codecs: ${{steps.set-triggers.outputs.trigger-test-portable-codecs}}"
 
   build-and-test-projects:
     name: "Build and test projects"
@@ -191,6 +214,16 @@ jobs:
     uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
     with:
       project: src/ValidationPackage.Model/ValidationPackage.Model.fsproj
+    secrets:
+      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+
+  release-codecs-package:
+    name: "Release portable codecs package"
+    needs: [setup, build-and-test-projects, test-portable-codecs]
+    if: needs.setup.outputs.trigger-release-codecs == 'true'
+    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
+    with:
+      project: src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj
     secrets:
       NUGET_KEY: ${{ secrets.NUGET_KEY }}
 
@@ -304,3 +337,71 @@ jobs:
         run: |
           dotnet restore tests/ValidationPackage.Model.PackageSmoke/ValidationPackage.Model.PackageSmoke.fsproj --source "$GITHUB_WORKSPACE/artifacts/packages" --source https://api.nuget.org/v3/index.json
           dotnet run --project tests/ValidationPackage.Model.PackageSmoke/ValidationPackage.Model.PackageSmoke.fsproj --configuration Release --no-restore
+
+  test-portable-codecs:
+    name: "Test portable codecs"
+    needs: setup
+    if: needs.setup.outputs.trigger-test-portable-codecs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x.x
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Restore tools and Python environment
+        run: |
+          dotnet tool restore
+          uv sync --locked
+      - name: Test codecs on .NET
+        run: dotnet run --project tests/ValidationPackage.Codecs.Tests/ValidationPackage.Codecs.Tests.fsproj --configuration Release
+      - name: Test codecs on JavaScript
+        run: |
+          dotnet fable tests/ValidationPackage.Codecs.Tests/javascript/ValidationPackage.Codecs.Tests.Javascript.fsproj --outDir artifacts/codec-tests-js/out --lang javascript --noCache
+          npm run test:codecs:js
+      - name: Test codecs on Python
+        run: |
+          dotnet fable tests/ValidationPackage.Codecs.Tests/python/ValidationPackage.Codecs.Tests.Python.fsproj --outDir artifacts/codec-tests-python/out --lang python --noCache
+          uv run --locked python -c "import runpy,sys; sys.path[:0] = ['artifacts/codec-tests-python/out', 'artifacts/codec-tests-python/out/__']; runpy.run_path('artifacts/codec-tests-python/out/__/main.py', run_name='__main__')"
+      - name: Pack model and codecs
+        run: |
+          dotnet pack src/ValidationPackage.Model/ValidationPackage.Model.fsproj --configuration Release --output artifacts/packages
+          dotnet pack src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj --configuration Release --output artifacts/packages
+      - name: Verify Fable codec package sources
+        run: |
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackage.Codecs.fsproj'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/FrontmatterLanguage.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/Frontmatter.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/YamlValue.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/CwlYaml.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/AuthorYaml.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/OntologyAnnotationYaml.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackageYaml.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/JsonRuntime.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/CwlJson.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/AuthorJson.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/OntologyAnnotationJson.fs'
+          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackageJson.fs'
+      - name: Restore packed-package smoke project
+        run: dotnet restore tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --source "$GITHUB_WORKSPACE/artifacts/packages" --source https://api.nuget.org/v3/index.json
+      - name: Test packed codecs on .NET
+        run: dotnet run --project tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --configuration Release --no-restore
+      - name: Test packed codecs on JavaScript
+        run: |
+          dotnet fable tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --outDir artifacts/codec-package-smoke-js --lang javascript --noCache
+          node artifacts/codec-package-smoke-js/Program.js
+      - name: Test packed codecs on Python
+        run: |
+          dotnet fable tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --outDir artifacts/codec-package-smoke-py --lang python --noCache
+          uv run --locked python artifacts/codec-package-smoke-py/program.py

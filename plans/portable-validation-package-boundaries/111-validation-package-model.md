@@ -2,12 +2,12 @@
 
 ## Status
 
-Draft implementation plan for the first delivery slice of
+Implemented delivery plan for the first delivery slice of
 [AVPR #111](https://github.com/nfdi4plants/arc-validate-package-registry/issues/111).
 
-This phase creates and proves the portable model package. It does not create
-`ValidationPackage.Codecs` or migrate production consumers yet. Those changes
-complete the rest of #111 after this boundary is established.
+This phase creates and proves the portable model package. The subsequent
+`ValidationPackage.Codecs` slice is implemented separately; production
+consumer migration remains outside this phase.
 
 ## Objective
 

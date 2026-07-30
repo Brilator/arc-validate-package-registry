@@ -10,6 +10,8 @@ The repository contains:
 - `StagingArea/`: reviewed F# and Python validation-package submissions;
 - `src/ValidationPackage.Model/`: portable validation-package domain types for
   .NET, JavaScript, and Python;
+- `src/ValidationPackage.Codecs/`: portable YAML frontmatter and JSON codecs for
+  the shared model on .NET, JavaScript, and Python;
 - `src/AVPRIndex/`: package metadata, frontmatter, hashing, and index utilities;
 - `src/AVPRClient/`: the generated .NET registry client;
 - `src/AVPRCI/`: publication tooling;
@@ -62,6 +64,16 @@ dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.f
 npm run test:model:js
 dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
 uv run --locked python artifacts/model-tests/py/main.py
+```
+
+Run the portable codec suite on all three targets with:
+
+```shell
+dotnet run --project tests/ValidationPackage.Codecs.Tests/ValidationPackage.Codecs.Tests.fsproj --configuration Release
+dotnet fable tests/ValidationPackage.Codecs.Tests/javascript/ValidationPackage.Codecs.Tests.Javascript.fsproj --outDir artifacts/codec-tests-js/out --lang javascript --noCache
+npm run test:codecs:js
+dotnet fable tests/ValidationPackage.Codecs.Tests/python/ValidationPackage.Codecs.Tests.Python.fsproj --outDir artifacts/codec-tests-python/out --lang python --noCache
+uv run --locked python -c "import runpy,sys; sys.path[:0] = ['artifacts/codec-tests-python/out', 'artifacts/codec-tests-python/out/__']; runpy.run_path('artifacts/codec-tests-python/out/__/main.py', run_name='__main__')"
 ```
 
 With Docker Desktop running, start the registry service, PostgreSQL, and Adminer

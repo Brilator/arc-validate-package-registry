@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <FablePackageType>library</FablePackageType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>nfdi4plants</Authors>
+    <Description>Portable YAML frontmatter and JSON codecs for ARC validation packages.</Description>
+    <Summary>Pure validation-package serialization for .NET, JavaScript, and Python.</Summary>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>F#;FSharp;ARC;validation;metadata;YAML;JSON;fable-dotnet;fable-javascript;fable-python</PackageTags>
+    <PackageProjectUrl>https://github.com/nfdi4plants/arc-validate-package-registry</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nfdi4plants/arc-validate-package-registry</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/RELEASE_NOTES.md"))</PackageReleaseNotes>
+    <PackageVersion>0.1.0</PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="FrontmatterLanguage.fs" />
+    <Compile Include="Frontmatter.fs" />
+    <Compile Include="YamlValue.fs" />
+    <Compile Include="CwlYaml.fs" />
+    <Compile Include="AuthorYaml.fs" />
+    <Compile Include="OntologyAnnotationYaml.fs" />
+    <Compile Include="ValidationPackageYaml.fs" />
+    <Compile Include="JsonRuntime.fs" />
+    <Compile Include="CwlJson.fs" />
+    <Compile Include="AuthorJson.fs" />
+    <Compile Include="OntologyAnnotationJson.fs" />
+    <Compile Include="ValidationPackageJson.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
+    <PackageReference Include="Fable.Core" Version="5.0.0" />
+    <PackageReference Include="YAMLicious" Version="1.0.0" />
+    <PackageReference Include="Thoth.Json.Core" Version="0.9.0" />
+    <PackageReference Include="Fable.Package.SDK" Version="1.4.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="RELEASE_NOTES.md" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="ReferenceObjects.fs" />
+    <Compile Include="FrontmatterTests.fs" />
+    <Compile Include="YamlTests.fs" />
+    <Compile Include="JsonTests.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Python" Version="5.0.0" />
+    <PackageReference Include="Fable.Pyxpecto" Version="2.0.0" />
+    <ProjectReference Include="..\..\src\ValidationPackage.Codecs\ValidationPackage.Codecs.fsproj" />
+  </ItemGroup>
+
+</Project>

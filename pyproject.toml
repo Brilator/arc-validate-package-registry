@@ -1,7 +1,7 @@
 [project]
 name = "avpr-portable-contract-tests"
 version = "0.0.0"
-description = "Python environment for AVPR's Fable cross-target contract tests."
+description = "Python environment for AVPR's portable model and codec contract tests."
 requires-python = ">=3.12"
 dependencies = [
     "fable-library==5.0.0",

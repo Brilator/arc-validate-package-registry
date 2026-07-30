@@ -2,9 +2,9 @@
 
 ## Status and planning policy
 
-**Status:** implementation underway. The codec-free `ValidationPackage.Model`
-slice of AVPR #111 is implemented; portable codecs and the remaining roadmap
-work are pending.
+**Status:** implementation underway. The portable `ValidationPackage.Model`
+and `ValidationPackage.Codecs` slices of AVPR #111 are implemented; production
+consumer migration and the remaining roadmap work are pending.
 
 GitHub tracking:
 
