@@ -2,7 +2,8 @@ using System.Net;
 using System.Text;
 using PackageRegistryService.Models;
 using PackageRegistryTestHost;
-using static AVPRIndex.Domain;
+
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
 
 namespace APITests;
 
@@ -88,7 +89,7 @@ public class PackagePageTests
         Assert.DoesNotContain("<th scope=\"col\">Binding</th>", html);
     }
 
-    private static ValidationPackage CreatePackage(string name) => new()
+    private static RegistryValidationPackage CreatePackage(string name) => new()
     {
         Name = name,
         Summary = "Page test",

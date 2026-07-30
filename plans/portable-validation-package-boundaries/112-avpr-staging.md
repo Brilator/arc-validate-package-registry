@@ -5,9 +5,9 @@
 Implementation underway for
 [AVPR #112](https://github.com/nfdi4plants/arc-validate-package-registry/issues/112).
 
-The focused staging boundary and AVPRCI migration are implemented. Service
-initialization remains on `AVPRIndex` until AVPR #113 introduces service-owned
-nested types; generated-client interop remains coordinated with AVPR #114.
+The focused staging boundary and migrations of AVPRCI and service
+initialization are implemented. Generated-client interop remains coordinated
+with AVPR #114.
 
 ## Objective
 

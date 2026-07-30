@@ -2,7 +2,8 @@ using PackageRegistryService.Models;
 using PackageRegistryTestHost;
 using System.Text;
 using System.Text.Json;
-using static AVPRIndex.Domain;
+
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
 
 namespace APITests;
 
@@ -92,7 +93,7 @@ public class PackageRegistryWebApplicationFactoryTests
         }
     }
 
-    internal static ValidationPackage CreatePackage() => new()
+    internal static RegistryValidationPackage CreatePackage() => new()
     {
         Name = "test-target",
         Summary = "Test target",

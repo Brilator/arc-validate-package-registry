@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static AVPRIndex.Domain;
 
 namespace PackageRegistryService.Models;
 

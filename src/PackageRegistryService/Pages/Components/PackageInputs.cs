@@ -1,4 +1,4 @@
-using static AVPRIndex.Domain;
+using PackageRegistryService.Models;
 using System.Text.Encodings.Web;
 
 namespace PackageRegistryService.Pages.Components
@@ -9,7 +9,7 @@ namespace PackageRegistryService.Pages.Components
 
         private static string RenderType(CommandInputType inputType)
         {
-            var cwlType = CommandInputType.toCwlString(inputType);
+            var cwlType = CommandInputType.ToCwlString(inputType);
             return inputType.IsNullable
                 ? $"{cwlType[..^1]} (optional)"
                 : cwlType;

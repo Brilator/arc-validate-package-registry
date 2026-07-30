@@ -1,11 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
-using System.ComponentModel.DataAnnotations;
+using AVPR.Staging;
 using System.Text;
-using System.Security.Cryptography;
-using AVPRIndex;
-using static AVPRIndex.Domain;
+using PortableSemVer = global::ValidationPackage.Model.SemVer;
 
 namespace PackageRegistryService.Models
 {
@@ -81,7 +78,7 @@ namespace PackageRegistryService.Models
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<AVPRIndex.Domain.OntologyAnnotation> Tags { get; set; } = Array.Empty<AVPRIndex.Domain.OntologyAnnotation>().ToList();
+        public ICollection<OntologyAnnotation> Tags { get; set; } = [];
 
         /// <summary>
         /// 
@@ -96,7 +93,7 @@ namespace PackageRegistryService.Models
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<AVPRIndex.Domain.Author> Authors { get; set; } = Array.Empty<AVPRIndex.Domain.Author>().ToList();// https://www.learnentityframeworkcore.com/relationships#navigation-properties
+        public ICollection<Author> Authors { get; set; } = [];
 
         /// <summary>
         ///
@@ -106,7 +103,7 @@ namespace PackageRegistryService.Models
         /// <summary>
         /// The CWL command inputs this validation package accepts.
         /// </summary>
-        public ICollection<AVPRIndex.Domain.CommandInputParameter> Inputs { get; set; } = [];
+        public ICollection<CommandInputParameter> Inputs { get; set; } = [];
 
         /// <summary>
         /// 
@@ -114,14 +111,14 @@ namespace PackageRegistryService.Models
         /// <returns>A string containing the semantic version of the validation package</returns>
         public string GetSemanticVersionString()
         {
-            SemVer semVer = new SemVer {
+            PortableSemVer semVer = new PortableSemVer {
                 Major = MajorVersion,
                 Minor = MinorVersion,
                 Patch = PatchVersion,
                 PreRelease = PreReleaseVersionSuffix,
                 BuildMetadata = BuildMetadataVersionSuffix
             };
-            return SemVer.toString(semVer);
+            return PortableSemVer.toString(semVer);
         }
 
         /// <summary>
@@ -136,7 +133,7 @@ namespace PackageRegistryService.Models
         /// <returns>A string containing the package content</returns>
         public string GetPackageContentHash()
         {
-            return AVPRIndex.Hash.hashContent(PackageContent);
+            return ContentHash.ofBytes(PackageContent);
         }
         
         /// <summary>

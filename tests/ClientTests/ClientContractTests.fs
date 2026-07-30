@@ -6,7 +6,6 @@ open Xunit
 open AVPRClient
 open PackageRegistryService.Models
 open PackageRegistryTestHost
-open AVPRIndex
 
 module InProcessRegistry =
 
@@ -25,10 +24,13 @@ module InProcessRegistry =
                 PackageContent = Encoding.UTF8.GetBytes("printfn \"test\"\n"),
                 ReleaseDate = DateOnly(2026, 7, 24),
                 Inputs = ResizeArray [
-                    Domain.CommandInputParameter.create(
-                        "verbose",
-                        Domain.CommandInputType.create(Domain.CwlPrimitive.Boolean, true),
-                        Domain.CommandInputBinding(Prefix = "--verbose"),
+                    PackageRegistryService.Models.CommandInputParameter(
+                        Id = "verbose",
+                        Type = PackageRegistryService.Models.CommandInputType(
+                            PrimitiveType = CwlPrimitive.Boolean,
+                            IsNullable = true
+                        ),
+                        InputBinding = CommandInputBinding(Prefix = "--verbose"),
                         Doc = "Enable verbose logging"
                     )
                 ]

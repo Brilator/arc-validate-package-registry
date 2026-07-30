@@ -2,15 +2,15 @@
 using PackageRegistryService.Models;
 using Microsoft.EntityFrameworkCore;
 using PackageRegistryService.Pages.Components;
-using AVPRIndex;
-using static AVPRIndex.Domain;
+using PortableSemVer = global::ValidationPackage.Model.SemVer;
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
 
 namespace PackageRegistryService.API.Handlers
 {
     public class PackageHandlers
     {
         // get all validation packages
-        public static async Task<Results<Ok<ValidationPackage[]>, Conflict<string>>> GetAllPackages(ValidationPackageDb database)
+        public static async Task<Results<Ok<RegistryValidationPackage[]>, Conflict<string>>> GetAllPackages(ValidationPackageDb database)
         {
             var packages = await database.ValidationPackages.ToArrayAsync();
 
@@ -26,7 +26,7 @@ namespace PackageRegistryService.API.Handlers
             return TypedResults.Ok(packages);
         }
 
-        public static async Task<Results<Ok<ValidationPackage>, NotFound<string>, Conflict<string>>> GetLatestPackageByName(string name, ValidationPackageDb database)
+        public static async Task<Results<Ok<RegistryValidationPackage>, NotFound<string>, Conflict<string>>> GetLatestPackageByName(string name, ValidationPackageDb database)
         {
             var package = await database.ValidationPackages
                 .Where(p => p.Name == name && p.BuildMetadataVersionSuffix == "" && p.BuildMetadataVersionSuffix == "") // only serve stable package versions here
@@ -51,9 +51,9 @@ namespace PackageRegistryService.API.Handlers
             return TypedResults.Ok(package);
         }
 
-        public static async Task<Results<BadRequest<string>, NotFound<string>, Conflict<string>, Ok<ValidationPackage>>> GetPackageByNameAndVersion(string name, string version, ValidationPackageDb database)
+        public static async Task<Results<BadRequest<string>, NotFound<string>, Conflict<string>, Ok<RegistryValidationPackage>>> GetPackageByNameAndVersion(string name, string version, ValidationPackageDb database)
         {
-            var semVerOpt =  SemVer.tryParse(version);
+            var semVerOpt = PortableSemVer.tryParse(version);
             if (semVerOpt is null)
             {
                 return TypedResults.BadRequest($"{version} is not a valid semantic version.");
@@ -78,7 +78,7 @@ namespace PackageRegistryService.API.Handlers
             return TypedResults.Ok(package);
         }
 
-        public static async Task<Results<Ok<ValidationPackage>, Conflict, UnauthorizedHttpResult, UnprocessableEntity<string>>> CreatePackage(ValidationPackage package, ValidationPackageDb database)
+        public static async Task<Results<Ok<RegistryValidationPackage>, Conflict, UnauthorizedHttpResult, UnprocessableEntity<string>>> CreatePackage(RegistryValidationPackage package, ValidationPackageDb database)
         {
             var existing = await database.ValidationPackages.FindAsync(package.Name, package.MajorVersion, package.MinorVersion, package.PatchVersion, package.PreReleaseVersionSuffix, package.BuildMetadataVersionSuffix);
             if (existing != null)

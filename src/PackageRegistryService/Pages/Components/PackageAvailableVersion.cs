@@ -1,12 +1,14 @@
 ﻿using PackageRegistryService.Models;
 
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
+
 namespace PackageRegistryService.Pages.Components
 {
     public class PackageAvailableVersion
     {
         public static string Render(string packageName, string version) => $@"<a href=""/package/{packageName}/{version}"">{version}</a>";
 
-        public static string RenderVersionTable(ValidationPackage[] packages)
+        public static string RenderVersionTable(RegistryValidationPackage[] packages)
         {
 
             var content = $@"<table>

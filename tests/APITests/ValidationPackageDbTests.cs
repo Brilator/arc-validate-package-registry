@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PackageRegistryService.Models;
 using System.Text.Json;
-using static AVPRIndex.Domain;
+
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
 
 namespace APITests;
 
@@ -45,10 +46,10 @@ public class ValidationPackageDbTests
 
         using var database = new ValidationPackageDb(options);
 
-        var packageEntity = database.Model.FindEntityType(typeof(ValidationPackage));
+        var packageEntity = database.Model.FindEntityType(typeof(RegistryValidationPackage));
         Assert.NotNull(packageEntity);
 
-        var inputsNavigation = packageEntity.FindNavigation(nameof(ValidationPackage.Inputs));
+        var inputsNavigation = packageEntity.FindNavigation(nameof(RegistryValidationPackage.Inputs));
         Assert.NotNull(inputsNavigation);
 
         var inputEntity = inputsNavigation.TargetEntityType;
@@ -97,7 +98,7 @@ public class ValidationPackageDbTests
     [Fact]
     public void ServiceJsonUsesTheCwlScalarTypeContract()
     {
-        var package = new ValidationPackage
+        var package = new RegistryValidationPackage
         {
             Name = "test",
             Summary = "summary",

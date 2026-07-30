@@ -4,7 +4,7 @@ using PackageRegistryService.Models;
 using PackageRegistryService.Pages.Components;
 using System.Text;
 using System.Xml.Linq;
-using static AVPRIndex.Domain;
+using PortableSemVer = global::ValidationPackage.Model.SemVer;
 
 namespace PackageRegistryService.Pages.Handlers
 {
@@ -12,7 +12,7 @@ namespace PackageRegistryService.Pages.Handlers
     {
         public static async Task<Results<ContentHttpResult, NotFound, BadRequest<string>>> Render(string packageName, string version, ValidationPackageDb database)
         {
-            var semVerOpt = SemVer.tryParse(version);
+            var semVerOpt = PortableSemVer.tryParse(version);
             if (semVerOpt is null)
             {
                 return TypedResults.BadRequest($"{version} is not a valid semantic version.");

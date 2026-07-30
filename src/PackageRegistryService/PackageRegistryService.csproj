@@ -53,6 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AVPRIndex\AVPRIndex.fsproj" />
+    <ProjectReference Include="..\AVPR.Staging\AVPR.Staging.fsproj" />
+    <ProjectReference Include="..\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
   </ItemGroup>
 </Project>

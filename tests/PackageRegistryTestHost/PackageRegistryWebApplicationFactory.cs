@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using PackageRegistryService.Models;
 
+using RegistryValidationPackage = PackageRegistryService.Models.ValidationPackage;
+
 namespace PackageRegistryTestHost;
 
 public sealed class PackageRegistryWebApplicationFactory : WebApplicationFactory<Program>
@@ -37,10 +39,10 @@ public sealed class PackageRegistryWebApplicationFactory : WebApplicationFactory
         });
     }
 
-    public Task SeedPackageAsync(ValidationPackage package) =>
+    public Task SeedPackageAsync(RegistryValidationPackage package) =>
         SeedPackagesAsync([package]);
 
-    public async Task SeedPackagesAsync(IEnumerable<ValidationPackage> packages)
+    public async Task SeedPackagesAsync(IEnumerable<RegistryValidationPackage> packages)
     {
         using var scope = Services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<ValidationPackageDb>();

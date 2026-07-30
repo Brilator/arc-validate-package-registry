@@ -2,7 +2,7 @@ using NJsonSchema;
 using NJsonSchema.Generation;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
-using static AVPRIndex.Domain;
+using PackageRegistryService.Models;
 
 namespace PackageRegistryService.OpenAPI;
 

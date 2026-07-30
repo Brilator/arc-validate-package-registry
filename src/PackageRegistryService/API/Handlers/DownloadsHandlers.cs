@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using PackageRegistryService.Models;
-using static AVPRIndex.Domain;
+using PortableSemVer = global::ValidationPackage.Model.SemVer;
 
 namespace PackageRegistryService.API.Handlers
 {
@@ -28,7 +28,7 @@ namespace PackageRegistryService.API.Handlers
 
         public static async Task<Results<BadRequest<string>, NotFound<string>, Ok<PackageDownloads>>> GetDownloadsByNameAndVersion(string name, string version, ValidationPackageDb database)
         {
-            var semVerOpt = SemVer.tryParse(version);
+            var semVerOpt = PortableSemVer.tryParse(version);
             if (semVerOpt is null)
             {
                 return TypedResults.BadRequest($"{version} is not a valid semantic version.");
