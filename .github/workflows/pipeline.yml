@@ -76,6 +76,10 @@ jobs:
               - StagingArea/**
             tests:
               - tests/**
+              - build/**
+              - build.cmd
+              - build.sh
+              - .github/workflows/run-build-target.yml
             api:
               - src/PackageRegistryService/**
             client:
@@ -94,6 +98,10 @@ jobs:
               - package.json
               - pyproject.toml
               - uv.lock
+              - build/**
+              - build.cmd
+              - build.sh
+              - .github/workflows/run-build-target.yml
             codecs:
               - src/ValidationPackage.Model/**
               - src/ValidationPackage.Codecs/**
@@ -103,6 +111,10 @@ jobs:
               - package.json
               - pyproject.toml
               - uv.lock
+              - build/**
+              - build.cmd
+              - build.sh
+              - .github/workflows/run-build-target.yml
 
       - name: decide on dry run
         id: decide-on-dry-run
@@ -186,50 +198,64 @@ jobs:
     needs: setup
     # https://github.com/actions/runner/issues/1173
     if: needs.setup.outputs.trigger-build-and-test-projects == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/build-and-test-solution.yml@main
+    uses: ./.github/workflows/run-build-target.yml
     with:
-      solution: ./arc-validate-package-registry.sln
-      configuration: Release
+      target: TestSolution
+      windows: true
+      ubuntu: true
+      macos: true
 
   release-index-package:
     name: "Release index package"
     needs: [setup, build-and-test-projects]
     if: needs.setup.outputs.trigger-release-index == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
     with:
-      project: src/AVPRIndex/AVPRIndex.fsproj
+      target: PackIndex
     secrets:
-      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      NUGET_USER: ${{ secrets.NUGET_USER }}
 
   release-client-package:
     name: "Release client package"
     needs: [setup, build-and-test-projects]
     if: needs.setup.outputs.trigger-release-client == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
     with:
-      project: src/AVPRClient/AVPRClient.csproj
+      target: PackClient
     secrets:
-      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      NUGET_USER: ${{ secrets.NUGET_USER }}
 
   release-model-package:
     name: "Release portable model package"
     needs: [setup, build-and-test-projects, test-portable-model]
     if: needs.setup.outputs.trigger-release-model == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
     with:
-      project: src/ValidationPackage.Model/ValidationPackage.Model.fsproj
+      target: PackModel
     secrets:
-      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      NUGET_USER: ${{ secrets.NUGET_USER }}
 
   release-codecs-package:
     name: "Release portable codecs package"
     needs: [setup, build-and-test-projects, test-portable-codecs]
     if: needs.setup.outputs.trigger-release-codecs == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/release-package.yml@main
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
     with:
-      project: src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj
+      target: PackCodecs
     secrets:
-      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      NUGET_USER: ${{ secrets.NUGET_USER }}
 
   release-api-image:
     name: "Release API image"
@@ -280,10 +306,9 @@ jobs:
     needs: setup
     # https://github.com/actions/runner/issues/1173
     if: needs.setup.outputs.trigger-test-staging-area == 'true'
-    uses: nfdi4plants/arc-validate-package-registry/.github/workflows/build-and-test-solution.yml@main
+    uses: ./.github/workflows/run-build-target.yml
     with:
-      solution: ./PackageStagingArea.sln
-      configuration: Release
+      target: TestStagingArea
       install-uv: true
       windows: true
       ubuntu: false
@@ -293,119 +318,20 @@ jobs:
     name: "Test portable model"
     needs: setup
     if: needs.setup.outputs.trigger-test-portable-model == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.x.x
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-      - name: Restore tools and Python environment
-        run: |
-          dotnet tool restore
-          uv sync --locked
-      - name: Test model on .NET
-        run: dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --configuration Release
-      - name: Test model on JavaScript
-        run: |
-          dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/js --lang javascript --noCache
-          npm run test:model:js
-      - name: Test model on Python
-        run: |
-          dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
-          uv run --locked python artifacts/model-tests/py/main.py
-      - name: Pack model
-        run: dotnet pack src/ValidationPackage.Model/ValidationPackage.Model.fsproj --configuration Release --output artifacts/packages
-      - name: Verify Fable package sources
-        run: |
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/ValidationPackage.Model.fsproj'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/PortableHash.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/SemanticVersion.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/ValidationPackageIdentity.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/Cwl.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/Author.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/OntologyAnnotation.fs'
-          unzip -l artifacts/packages/ValidationPackage.Model.*.nupkg | grep 'fable/ValidationPackageMetadata.fs'
-      - name: Test packed-package consumption
-        run: |
-          dotnet restore tests/ValidationPackage.Model.PackageSmoke/ValidationPackage.Model.PackageSmoke.fsproj --source "$GITHUB_WORKSPACE/artifacts/packages" --source https://api.nuget.org/v3/index.json
-          dotnet run --project tests/ValidationPackage.Model.PackageSmoke/ValidationPackage.Model.PackageSmoke.fsproj --configuration Release --no-restore
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestPortableModel
+      install-node: true
+      install-python: true
+      install-uv: true
 
   test-portable-codecs:
     name: "Test portable codecs"
     needs: setup
     if: needs.setup.outputs.trigger-test-portable-codecs == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.x.x
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-      - name: Restore tools and Python environment
-        run: |
-          dotnet tool restore
-          uv sync --locked
-      - name: Test codecs on .NET
-        run: dotnet run --project tests/ValidationPackage.Codecs.Tests/ValidationPackage.Codecs.Tests.fsproj --configuration Release
-      - name: Test codecs on JavaScript
-        run: |
-          dotnet fable tests/ValidationPackage.Codecs.Tests/javascript/ValidationPackage.Codecs.Tests.Javascript.fsproj --outDir artifacts/codec-tests-js/out --lang javascript --noCache
-          npm run test:codecs:js
-      - name: Test codecs on Python
-        run: |
-          dotnet fable tests/ValidationPackage.Codecs.Tests/python/ValidationPackage.Codecs.Tests.Python.fsproj --outDir artifacts/codec-tests-python/out --lang python --noCache
-          uv run --locked python -c "import runpy,sys; sys.path[:0] = ['artifacts/codec-tests-python/out', 'artifacts/codec-tests-python/out/__']; runpy.run_path('artifacts/codec-tests-python/out/__/main.py', run_name='__main__')"
-      - name: Pack model and codecs
-        run: |
-          dotnet pack src/ValidationPackage.Model/ValidationPackage.Model.fsproj --configuration Release --output artifacts/packages
-          dotnet pack src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj --configuration Release --output artifacts/packages
-      - name: Verify Fable codec package sources
-        run: |
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackage.Codecs.fsproj'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/FrontmatterLanguage.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/Frontmatter.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/YamlValue.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/CwlYaml.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/AuthorYaml.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/OntologyAnnotationYaml.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackageYaml.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/JsonRuntime.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/CwlJson.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/AuthorJson.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/OntologyAnnotationJson.fs'
-          unzip -l artifacts/packages/ValidationPackage.Codecs.*.nupkg | grep 'fable/ValidationPackageJson.fs'
-      - name: Restore packed-package smoke project
-        run: dotnet restore tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --source "$GITHUB_WORKSPACE/artifacts/packages" --source https://api.nuget.org/v3/index.json
-      - name: Test packed codecs on .NET
-        run: dotnet run --project tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --configuration Release --no-restore
-      - name: Test packed codecs on JavaScript
-        run: |
-          dotnet fable tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --outDir artifacts/codec-package-smoke-js --lang javascript --noCache
-          node artifacts/codec-package-smoke-js/Program.js
-      - name: Test packed codecs on Python
-        run: |
-          dotnet fable tests/ValidationPackage.Codecs.PackageSmoke/ValidationPackage.Codecs.PackageSmoke.fsproj --outDir artifacts/codec-package-smoke-py --lang python --noCache
-          uv run --locked python artifacts/codec-package-smoke-py/program.py
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestPortableCodecs
+      install-node: true
+      install-python: true
+      install-uv: true

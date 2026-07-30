@@ -1,0 +1,85 @@
+name: "Run build target"
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: "The build project target to run"
+        type: string
+        required: true
+      windows:
+        type: boolean
+        description: "Whether to run on Windows"
+        default: false
+      ubuntu:
+        type: boolean
+        description: "Whether to run on Ubuntu"
+        default: true
+      macos:
+        type: boolean
+        description: "Whether to run on macOS"
+        default: false
+      install-node:
+        type: boolean
+        description: "Whether to install Node.js"
+        default: false
+      install-python:
+        type: boolean
+        description: "Whether to install Python"
+        default: false
+      install-uv:
+        type: boolean
+        description: "Whether to install uv"
+        default: false
+
+jobs:
+  determine-strategy:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Determine operating systems
+        id: set-matrix
+        shell: bash
+        run: |
+          oses=()
+          if [[ "${{ inputs.windows }}" == "true" ]]; then oses+=(\"windows-latest\"); fi
+          if [[ "${{ inputs.ubuntu }}" == "true" ]]; then oses+=(\"ubuntu-latest\"); fi
+          if [[ "${{ inputs.macos }}" == "true" ]]; then oses+=(\"macos-latest\"); fi
+          joined=$(IFS=,; echo "${oses[*]}")
+          echo "matrix={\"os\":[$joined]}" >> "$GITHUB_OUTPUT"
+
+  run-target:
+    needs: determine-strategy
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{ fromJson(needs.determine-strategy.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x.x
+      - name: Set up Node
+        if: inputs.install-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Set up Python
+        if: inputs.install-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        if: inputs.install-uv
+        uses: astral-sh/setup-uv@v7
+      - name: Make build script executable
+        if: runner.os != 'Windows'
+        run: chmod +x build.sh
+      - name: Run ${{ inputs.target }}
+        if: runner.os == 'Windows'
+        run: .\build.cmd ${{ inputs.target }}
+      - name: Run ${{ inputs.target }}
+        if: runner.os != 'Windows'
+        run: ./build.sh ${{ inputs.target }}

@@ -18,6 +18,7 @@ The repository contains:
 - `src/AVPRClient/`: the generated .NET registry client;
 - `src/AVPRCI/`: publication tooling;
 - `src/PackageRegistryService/`: the registry API and package-browser website;
+- `build/`: the cross-platform build project used by local development and CI;
 - `tests/` and `StagingAreaTests/`: library, API, contract, and package checks.
 
 The production package browser and API are available at
@@ -41,42 +42,33 @@ Endpoint-level API documentation is provided by the deployed
 
 ## Quick start
 
-The SDK is pinned by `global.json` (currently .NET 10). Build and test the main
-solution with:
+The SDK is pinned by `global.json` (currently .NET 10). The build project has
+thin wrappers for Windows (`build.cmd`) and Unix (`build.sh`). Build and test
+the main solution with:
 
 ```shell
-dotnet build arc-validate-package-registry.sln --configuration Release
-dotnet test arc-validate-package-registry.sln --configuration Release
+./build.sh TestSolution
 ```
 
 Run staging-area checks with:
 
 ```shell
-dotnet build PackageStagingArea.sln --configuration Release
-dotnet test PackageStagingArea.sln --configuration Release --no-build
+./build.sh TestStagingArea
 ```
 
 Run the portable model contract suite on all three targets with:
 
 ```shell
-dotnet tool restore
-uv sync --locked
-dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --configuration Release
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/js --lang javascript --noCache
-npm run test:model:js
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
-uv run --locked python artifacts/model-tests/py/main.py
+./build.sh TestPortableModel
 ```
 
 Run the portable codec suite on all three targets with:
 
 ```shell
-dotnet run --project tests/ValidationPackage.Codecs.Tests/ValidationPackage.Codecs.Tests.fsproj --configuration Release
-dotnet fable tests/ValidationPackage.Codecs.Tests/javascript/ValidationPackage.Codecs.Tests.Javascript.fsproj --outDir artifacts/codec-tests-js/out --lang javascript --noCache
-npm run test:codecs:js
-dotnet fable tests/ValidationPackage.Codecs.Tests/python/ValidationPackage.Codecs.Tests.Python.fsproj --outDir artifacts/codec-tests-python/out --lang python --noCache
-uv run --locked python -c "import runpy,sys; sys.path[:0] = ['artifacts/codec-tests-python/out', 'artifacts/codec-tests-python/out/__']; runpy.run_path('artifacts/codec-tests-python/out/__/main.py', run_name='__main__')"
+./build.sh TestPortableCodecs
 ```
+
+On Windows, replace `./build.sh` with `.\build.cmd`.
 
 With Docker Desktop running, start the registry service, PostgreSQL, and Adminer
 development stack with:

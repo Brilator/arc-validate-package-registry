@@ -14,7 +14,7 @@ or `dev`. Its change detection selects the relevant jobs:
 - main solution builds and tests for index, client, service, or test changes;
 - staging-area syntax and metadata checks for package changes;
 - pre-publication integrity checks and eligible package publication;
-- NuGet publication for versioned model/index/client releases;
+- trusted NuGet publication for versioned model/codecs/index/client releases;
 - registry-service container publication.
 
 Workflow actions, permissions, and release branches are defined under
@@ -76,17 +76,43 @@ initialization path.
 
 ## NuGet releases
 
-For `ValidationPackage.Model`, `AVPRIndex`, or `AVPRClient`:
+For `ValidationPackage.Model`, `ValidationPackage.Codecs`, `AVPRIndex`, or
+`AVPRClient`:
 
 1. Update its project package version. For `ValidationPackage.Model`, update
    the version in the packed-package smoke project's `PackageReference` too.
 2. Update its `RELEASE_NOTES.md`.
-3. Run the main solution build and tests.
-4. For `ValidationPackage.Model`, also run the .NET, JavaScript, and Python
-   portable contract suite described in [testing changes](../development/testing.md).
+3. Run `./build.sh TestSolution` (or `.\build.cmd TestSolution` on Windows).
+4. For `ValidationPackage.Model` or `ValidationPackage.Codecs`, run its
+   `TestPortableModel` or `TestPortableCodecs` build target described in
+   [testing changes](../development/testing.md).
 5. Merge to `main`; the pipeline publishes the package when its release-note
    trigger and other gates pass. The model release additionally requires its
    cross-target and packed-consumer checks.
+
+NuGet publishing is keyless. The reusable release job enters the `release`
+GitHub environment, requests an OIDC token, and exchanges it through
+`NuGet/login` for a one-hour, single-use API key immediately before pushing.
+No long-lived NuGet API key is stored in GitHub.
+
+Repository administrators must configure both sides of the trust relationship:
+
+1. Create a GitHub Actions environment named `release`. Optional required
+   reviewers on this environment turn package publication into an approval
+   gate without changing the workflow.
+2. Add a nuget.org trusted-publishing policy with repository owner
+   `nfdi4plants`, repository `arc-validate-package-registry`, workflow file
+   `release-package.yml`, and environment `release`. Enter only the workflow
+   filename, not `.github/workflows/release-package.yml`.
+3. Store the nuget.org profile name associated with that policy as the
+   repository secret `NUGET_USER`. This is an identifier, not an API key.
+4. Remove the obsolete `NUGET_KEY` secret after the trusted publisher has been
+   configured and a release has succeeded.
+
+The package jobs are selected by `pipeline.yml`, but publication executes in
+the reusable `release-package.yml` workflow. NuGet validates GitHub's
+`job_workflow_ref` OIDC claim, which identifies that called workflow. Re-running
+a partially successful release is safe because pushes use `--skip-duplicate`.
 
 ## Publishing validation packages
 

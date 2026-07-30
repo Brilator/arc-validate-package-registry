@@ -14,12 +14,14 @@ handoff.
 
 ```shell
 # Main libraries, service, CLI, and tests
-dotnet build arc-validate-package-registry.sln --configuration Release
-dotnet test arc-validate-package-registry.sln --configuration Release
+./build.sh TestSolution
 
 # Staging-area checks
-dotnet build PackageStagingArea.sln --configuration Release
-dotnet test PackageStagingArea.sln --configuration Release --no-build
+./build.sh TestStagingArea
+
+# Portable .NET/JavaScript/Python contracts and packed-package consumers
+./build.sh TestPortableModel
+./build.sh TestPortableCodecs
 
 # Focused suites
 dotnet test tests/IndexTests/IndexTests.fsproj --configuration Release
@@ -28,30 +30,26 @@ dotnet test tests/APITests/APITests.csproj --configuration Release
 dotnet test StagingAreaTests/StagingAreaTests.fsproj --configuration Release
 ```
 
+On Windows, use `.\build.cmd` in place of `./build.sh`. The individual
+`dotnet test` commands remain useful for focused iteration.
+
 ## Portable model
 
 `ValidationPackage.Model.Tests` runs the same behavioral contract on .NET,
 JavaScript, and Python. It is a Pyxpecto executable, so invoke the .NET target
 with `dotnet run` rather than `dotnet test`.
 
-```shell
-dotnet tool restore
-uv sync --locked
+Run `./build.sh TestPortableModel` for the model and
+`./build.sh TestPortableCodecs` for the codecs. Each target restores the pinned
+tools and uv environment, runs the shared contract on .NET, JavaScript, and
+Python, packs the NuGet package, and runs consumers restored from the local
+package rather than project references.
 
-dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --configuration Release
-
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/js --lang javascript --noCache
-npm run test:model:js
-
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
-uv run --locked python artifacts/model-tests/py/main.py
-```
-
-Generated output belongs under ignored `artifacts/`. After changing a public
-portable type, inspect that output for attached class members, clean backing
-field names, and target-specific behavior. CI also packs the model, verifies
-that its ordered F# sources are present under `fable/`, and restores a smoke
-consumer from the local package rather than a project reference.
+Generated output belongs under ignored `artifacts/portable/`. After changing a
+public portable type, inspect that output for attached class members, clean
+backing-field names, and target-specific behavior. Compiling the packed-package
+consumers through Fable verifies that the required ordered sources were placed
+under the NuGet package's `fable/` path.
 
 ## In-process registry test host
 

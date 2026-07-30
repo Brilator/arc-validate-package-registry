@@ -11,14 +11,16 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `StagingArea/<package-name>/<package-name>@<semver>.fsx|py`: submitted validation packages.
 - `StagingAreaTests/`: package layout, metadata, naming, and script sanity checks.
 - `src/ValidationPackage.Model/`: portable metadata, CWL inputs, package identity, and SemVer behavior for .NET and Fable.
+- `src/ValidationPackage.Codecs/`: portable YAML frontmatter and JSON codecs for the shared model.
 - `src/AVPRIndex/`: F# domain types and utilities for package metadata, frontmatter, hashes, and indexes.
 - `src/AVPR.Staging/`: internal staged-package discovery, normalized content, and content hashing built on the portable model/codecs.
 - `src/AVPRClient/`: generated/consumer-facing .NET API client.
 - `src/AVPRCI/`: CLI used to publish packages.
 - `src/PackageRegistryService/`: ASP.NET Core registry API, website, database model, and migrations.
 - `tests/`: tests for the index, client, and API.
+- `build/`: FAKE/BlackFox build project containing local and CI build, test, and pack targets.
 - `.github/workflows/pipeline.yml`: change detection and orchestration for tests and releases.
-- `.github/workflows/build-and-test-solution.yml`: reusable .NET build/test workflow.
+- `.github/workflows/run-build-target.yml`: reusable cross-platform build-target runner.
 
 ## Toolchain and common commands
 
@@ -26,12 +28,20 @@ The pinned SDK is in `global.json` (currently .NET 10). Python package execution
 
 ```shell
 # Main libraries, service, CLI, and their tests
-dotnet build arc-validate-package-registry.sln --configuration Release
-dotnet test arc-validate-package-registry.sln --configuration Release
+.\build.cmd TestSolution
 
 # Staging-area checks (compile-checks all packages and executes two fixtures)
-dotnet build PackageStagingArea.sln --configuration Release
-dotnet test PackageStagingArea.sln --configuration Release --no-build
+.\build.cmd TestStagingArea
+
+# Portable model/codecs across .NET, JavaScript, and Python, including packed consumers
+.\build.cmd TestPortableModel
+.\build.cmd TestPortableCodecs
+
+# Produce one release artifact under artifacts/packages
+.\build.cmd PackModel
+.\build.cmd PackCodecs
+.\build.cmd PackIndex
+.\build.cmd PackClient
 
 # Focused test projects
 dotnet test tests/IndexTests/IndexTests.fsproj
@@ -39,18 +49,13 @@ dotnet test tests/ClientTests/ClientTests.fsproj
 dotnet test tests/APITests/APITests.csproj
 dotnet test StagingAreaTests/StagingAreaTests.fsproj
 
-# Portable model contract (.NET, JavaScript, and Python)
-dotnet tool restore
-uv sync --locked
-dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --lang javascript --outDir artifacts/model-tests/js --noCache
-npm run test:model:js
-dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --lang python --outDir artifacts/model-tests/py --noCache
-uv run --locked python artifacts/model-tests/py/main.py
-
 # Inspect a publication without pushing
 dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish --api-key <key> --dry-run
 ```
+
+Use `./build.sh` instead of `.\build.cmd` on Linux or macOS. Keep CI command
+details in the build project; workflows should install platform toolchains and
+invoke a named target rather than duplicate build logic inline.
 
 Prefer focused builds/tests while developing, then run the affected solution before handing off. Do not perform a non-dry-run publication unless the user explicitly requests it and provides the necessary authorization.
 
@@ -109,7 +114,7 @@ Python. Treat transpiled API shape and behavior as part of its public contract.
   standard-library API may differ across targets, cover its behavior in the
   shared cross-target suite.
 - After changing a portable public type, transpile it and inspect the generated
-  JavaScript and Python under `artifacts/model-tests/`. Check for detached
+  JavaScript and Python under `artifacts/portable/`. Check for detached
   functions, `@`-suffixed fields, mangled names, and target-only failures.
 - Keep F# source order explicit in every portable `.fsproj`. Pack the project
   and ordered `.fs`/`.fsi` sources under the NuGet package's `fable/` path.
@@ -185,6 +190,7 @@ When adding tests:
 - Changes under `tests/**` or the main `src` projects can trigger the main solution build/test job.
 - On pushes to `main`, release-note changes can publish NuGet packages and service changes can publish the production container image (`ghcr.io/nfdi4plants/avpr:main`).
 - `dev` is a long-lived integration branch: pushes there publish a separate `ghcr.io/nfdi4plants/avpr:dev` image for the development instance, but NuGet releases and production package publication are gated to `main` only.
+- NuGet releases use trusted publishing through the `release` GitHub environment. The publish job needs `id-token: write` and exchanges OIDC through `NuGet/login`; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy.
 - A staged package marked for publication can be pushed to the production registry after checks pass.
 - Workflow actions should remain pinned to deliberate versions/commits. Preserve least-privilege permissions and never print secrets.
 

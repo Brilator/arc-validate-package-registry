@@ -3,18 +3,22 @@ name: "Release Packages"
 on:
   workflow_call:
     inputs:
-      project:
+      target:
         required: true
         type: string
-        description: "The project to release"
+        description: "The build project target that packs the package"
     secrets:
-      NUGET_KEY:
+      NUGET_USER:
         required: true
-        description: "The key that allows pushing packages to nuget"
+        description: "The nuget.org profile name used by the trusted-publishing policy"
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -22,7 +26,14 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.x.x
-    - name: pack
-      run: dotnet pack ${{ inputs.project }} --configuration Release -o ./pkg
+    - name: Make build script executable
+      run: chmod +x build.sh
+    - name: Pack
+      run: ./build.sh ${{ inputs.target }}
+    - name: NuGet login (OIDC to temporary API key)
+      uses: NuGet/login@v1
+      id: nuget-login
+      with:
+        user: ${{ secrets.NUGET_USER }}
     - name: push
-      run: dotnet nuget push ./pkg/*.nupkg --api-key ${{ secrets.nuget_key }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./artifacts/packages/*.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

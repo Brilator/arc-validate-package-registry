@@ -42,9 +42,11 @@ the registry API.
 Build or test them through the main solution:
 
 ```shell
-dotnet build arc-validate-package-registry.sln --configuration Release
-dotnet test arc-validate-package-registry.sln --configuration Release
+./build.sh TestSolution
 ```
+
+Use `.\build.cmd TestSolution` on Windows. Other repository-wide targets are
+documented in [testing changes](testing.md).
 
 Portable model tests are a regular Pyxpecto executable. Run the same test
 source on .NET, JavaScript, and Python using the commands in
