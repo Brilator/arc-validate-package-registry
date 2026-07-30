@@ -10,6 +10,7 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 
 - `StagingArea/<package-name>/<package-name>@<semver>.fsx|py`: submitted validation packages.
 - `StagingAreaTests/`: package layout, metadata, naming, and script sanity checks.
+- `src/ValidationPackage.Model/`: portable metadata, CWL inputs, package identity, and SemVer behavior for .NET and Fable.
 - `src/AVPRIndex/`: F# domain types and utilities for package metadata, frontmatter, hashes, and indexes.
 - `src/AVPRClient/`: generated/consumer-facing .NET API client.
 - `src/AVPRCI/`: CLI used to publish packages.
@@ -36,6 +37,15 @@ dotnet test tests/IndexTests/IndexTests.fsproj
 dotnet test tests/ClientTests/ClientTests.fsproj
 dotnet test tests/APITests/APITests.csproj
 dotnet test StagingAreaTests/StagingAreaTests.fsproj
+
+# Portable model contract (.NET, JavaScript, and Python)
+dotnet tool restore
+uv sync --locked
+dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --lang javascript --outDir artifacts/model-tests/js --noCache
+npm run test:model:js
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --lang python --outDir artifacts/model-tests/py --noCache
+uv run --locked python artifacts/model-tests/py/main.py
 
 # Inspect a publication without pushing
 dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish --api-key <key> --dry-run
@@ -75,6 +85,50 @@ When changing these checks:
 - Avoid broad formatting or generated-file churn unrelated to the change.
 - Do not edit `bin/`, `obj/`, `.vs/`, or other build output.
 - Preserve unrelated working-tree changes.
+
+## Portable Fable code and tests
+
+`ValidationPackage.Model` is compiled once from F# for .NET, JavaScript, and
+Python. Treat transpiled API shape and behavior as part of its public contract.
+
+- Keep the portable model free of YAML/JSON implementations, STJ attributes,
+  filesystem, hashing, EF, HTTP, OpenAPI, generated-client, and AVPR staging
+  types. Those concerns belong to codecs or application-specific boundaries.
+- Prefer public classes over records when values are intended for direct use
+  from JavaScript or Python. Mark every public portable class with
+  `[<AttachMembers>]` so instance and static members remain attached to the
+  emitted class.
+- Implement settable properties with an explicitly named mutable backing field
+  such as `_name`. Do not use `member val ... with get, set` in portable public
+  classes: Fable emits compiler-generated fields such as `Name@`, which leak an
+  awkward native API. Do not shadow constructor parameters with backing fields.
+- Prefer static members on public classes to modules when the behavior belongs
+  to a domain type. Private implementation modules are fine.
+- Avoid reflection and target-specific APIs in portable sources. When a
+  standard-library API may differ across targets, cover its behavior in the
+  shared cross-target suite.
+- After changing a portable public type, transpile it and inspect the generated
+  JavaScript and Python under `artifacts/model-tests/`. Check for detached
+  functions, `@`-suffixed fields, mangled names, and target-only failures.
+- Keep F# source order explicit in every portable `.fsproj`. Pack the project
+  and ordered `.fs`/`.fsi` sources under the NuGet package's `fable/` path.
+
+Portable contract tests use only `Fable.Pyxpecto` as their test framework. They
+are a regular executable, not a VSTest project:
+
+- Run the .NET suite with `dotnet run`, not `dotnet test`.
+- Transpile the same suite with the pinned local Fable tool and run the emitted
+  entry point with Node or the uv-managed Python interpreter.
+- Keep the root `package.json` marked as `"type": "module"` so Node treats
+  Fable output as ESM.
+- Declare Python runtime dependencies in the root `pyproject.toml`, commit
+  `uv.lock`, and run Python output with `uv run`. Do not install dependencies
+  ad hoc into a system Python.
+- `.venv` is platform-specific and ignored. If a workspace moves between
+  operating systems, recreate that exact `.venv` before running `uv sync` or
+  `uv run`; never reuse a foreign-platform environment.
+- Generated JS/Python belongs under ignored `artifacts/` and must not be
+  committed.
 
 ## Cross-cutting model changes
 

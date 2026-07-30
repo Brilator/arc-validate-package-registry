@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <FablePackageType>library</FablePackageType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>nfdi4plants</Authors>
+    <Description>Portable domain model for ARC validation packages.</Description>
+    <Summary>Validation-package metadata, CWL inputs, identity, and semantic-version behavior for .NET and Fable.</Summary>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>F#;FSharp;ARC;validation;metadata;CWL;fable-dotnet;fable-javascript;fable-python</PackageTags>
+    <PackageProjectUrl>https://github.com/nfdi4plants/arc-validate-package-registry</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nfdi4plants/arc-validate-package-registry</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/RELEASE_NOTES.md"))</PackageReleaseNotes>
+    <PackageVersion>0.1.0</PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="PortableHash.fs" />
+    <Compile Include="SemanticVersion.fs" />
+    <Compile Include="ValidationPackageIdentity.fs" />
+    <Compile Include="Cwl.fs" />
+    <Compile Include="Author.fs" />
+    <Compile Include="OntologyAnnotation.fs" />
+    <Compile Include="ValidationPackageMetadata.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="RELEASE_NOTES.md" />
+    <PackageReference Include="Fable.Core" Version="5.0.0" />
+    <PackageReference Include="Fable.Package.SDK" Version="1.4.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

@@ -3,6 +3,7 @@
 ## Contents
 
 - [Common commands](#common-commands)
+- [Portable model](#portable-model)
 - [In-process registry test host](#in-process-registry-test-host)
 - [Metadata-model changes](#metadata-model-changes)
 
@@ -26,6 +27,31 @@ dotnet test tests/ClientTests/ClientTests.fsproj --configuration Release
 dotnet test tests/APITests/APITests.csproj --configuration Release
 dotnet test StagingAreaTests/StagingAreaTests.fsproj --configuration Release
 ```
+
+## Portable model
+
+`ValidationPackage.Model.Tests` runs the same behavioral contract on .NET,
+JavaScript, and Python. It is a Pyxpecto executable, so invoke the .NET target
+with `dotnet run` rather than `dotnet test`.
+
+```shell
+dotnet tool restore
+uv sync --locked
+
+dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --configuration Release
+
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/js --lang javascript --noCache
+npm run test:model:js
+
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
+uv run --locked python artifacts/model-tests/py/main.py
+```
+
+Generated output belongs under ignored `artifacts/`. After changing a public
+portable type, inspect that output for attached class members, clean backing
+field names, and target-specific behavior. CI also packs the model, verifies
+that its ordered F# sources are present under `fable/`, and restores a smoke
+consumer from the local package rather than a project reference.
 
 ## In-process registry test host
 

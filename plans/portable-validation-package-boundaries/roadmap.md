@@ -1,0 +1,393 @@
+# Roadmap: Portable validation-package boundaries across AVPR and arc-validate
+
+## Status and planning policy
+
+**Status:** implementation underway. The codec-free `ValidationPackage.Model`
+slice of AVPR #111 is implemented; portable codecs and the remaining roadmap
+work are pending.
+
+GitHub tracking:
+
+- Epic: [AVPR #110](https://github.com/nfdi4plants/arc-validate-package-registry/issues/110)
+- AVPR sub-issues:
+  [#111](https://github.com/nfdi4plants/arc-validate-package-registry/issues/111),
+  [#112](https://github.com/nfdi4plants/arc-validate-package-registry/issues/112),
+  [#113](https://github.com/nfdi4plants/arc-validate-package-registry/issues/113),
+  [#114](https://github.com/nfdi4plants/arc-validate-package-registry/issues/114), and
+  [#115](https://github.com/nfdi4plants/arc-validate-package-registry/issues/115)
+- arc-validate sub-issues:
+  [#242](https://github.com/nfdi4plants/arc-validate/issues/242),
+  [#243](https://github.com/nfdi4plants/arc-validate/issues/243),
+  [#244](https://github.com/nfdi4plants/arc-validate/issues/244), and
+  [#245](https://github.com/nfdi4plants/arc-validate/issues/245)
+
+This document intentionally stays at roadmap level. Do not add detailed
+implementation plans for individual sub-issues until explicitly requested.
+When requested, place each detailed plan in this folder as a separate document
+named for its GitHub issue.
+
+---
+
+## Goals
+
+- Establish one portable validation-package domain model that can be consumed
+  from .NET and, through Fable, JavaScript and Python.
+- Remove registry indexing, YAML, JSON, filesystem, EF, and generated-client
+  concerns from that model.
+- Retire `AVPRIndex` by moving its remaining responsibilities to accurately
+  named owners.
+- Prepare ARCExpect for transpilation without blocking near-term work on
+  changes to the widely consumed `Fable.Pyxpecto` library.
+- Move package caching, installation, and process execution into the
+  `arc-validate` CLI, where they are actually consumed.
+- Make contract drift between AVPR and arc-validate fail in CI before package
+  publication.
+
+---
+
+## Confirmed architectural decisions
+
+### Portable domain and codecs
+
+- `ValidationPackage.Model` owns metadata, authors, tags, CWL inputs, package
+  identity, and semantic-version behavior.
+- The model contains no YAML/JSON implementation, STJ attributes, filesystem,
+  hashing, EF, HTTP, generated-client, or AVPR staging types.
+- `ValidationPackage.Codecs` owns string-to-model and model-to-string codecs:
+  YAML/frontmatter through YAMLicious and domain JSON through Thoth.Json.
+- File reading, directory traversal, and content hashing are application
+  infrastructure, not codec responsibilities.
+
+### AVPRIndex retirement
+
+- `AVPRIndex` will be decomposed and retired rather than retained as a renamed
+  collection of unrelated infrastructure.
+- Repository traversal, normalized package content, hashing, and staged package
+  state move to focused AVPR staging infrastructure.
+- `ValidationPackageIndex` becomes `StagedValidationPackage`; it is not part of
+  the portable domain.
+
+### Registry service model
+
+- `PackageRegistryService` keeps one service-owned model used for both
+  ASP.NET/OpenAPI transport and EF persistence.
+- The service replaces nested `AVPRIndex.Domain` types with service-owned
+  author, ontology, and command-input types under
+  `src/PackageRegistryService/Models/`.
+- Explicit mappings convert between `ValidationPackage.Model` and the
+  service-owned model.
+- STJ attributes/converters and EF fluent configuration remain service
+  implementation details.
+- Separate API DTOs and persistence entities are not introduced now. Revisit
+  that split only if the public and stored shapes materially diverge.
+
+### Generated client
+
+- `AVPRClient` contains generated code only and has no dependency on the model,
+  codecs, staging infrastructure, or the former index project.
+- Portable model/client mappings move to `AVPRClient.Interop`.
+- Staging and publication-specific conversions move to `AVPRCI`.
+
+### ARCExpect and Pyxpecto
+
+- ARCExpect owns a portable result contract consisting of case outcomes,
+  per-case results, and run summaries.
+- Portable summary, JUnit, and badge generation consumes that result contract,
+  not `Expecto.TestRunSummary`.
+- The current Expecto runner remains behind a thin .NET boundary during the
+  preparation work.
+- Structured Pyxpecto results and the final runner replacement happen later;
+  Pyxpecto's ecosystem-wide rollout does not block the model, codec, output,
+  CLI, or compatibility work.
+
+### CLI package management
+
+- `ARCValidationPackages` is not treated as a general-purpose authoring
+  library.
+- Registry access, configuration, caching, and installation move into internal
+  `arc-validate/PackageManagement` modules.
+- FSI and `uv run` execution move into internal
+  `arc-validate/PackageRunner` modules.
+- The published package is deprecated before removal if external usage
+  requires a compatibility window.
+
+---
+
+## Target structure
+
+```text
+arc-validate-package-registry/
+  src/
+    ValidationPackage.Model/       portable domain
+    ValidationPackage.Codecs/      YAMLicious + Thoth.Json codecs
+    AVPR.Staging/                   repository scan, normalized content, hashes
+    AVPRClient/                     generated HTTP client only
+    AVPRClient.Interop/             client DTO <-> portable domain
+    AVPRCI/                         publication orchestration and conversions
+    PackageRegistryService/
+      Models/                       service-owned API + EF types
+      Mappings/                     portable domain <-> service model
+
+arc-validate/
+  src/
+    ARCExpect.Core/                 current package and .NET compatibility path
+    ARCExpect.Core.Portable/        transitional portable results and writers
+    ARCExpect/                      ARC-specific validation APIs
+    arc-validate/
+      PackageManagement/            registry, cache, config, install/uninstall
+      PackageRunner/                FSI and Python execution
+```
+
+`ARCExpect.Core.Portable` is a transitional working boundary, not a confirmed
+published package name. Its sources can be absorbed into the final
+`ARCExpect.Core` once the Pyxpecto transition and major-version migration are
+ready.
+
+---
+
+## Roadmap
+
+### Milestone 1 — Extract the portable contract and retire AVPRIndex
+
+Issues:
+
+- [AVPR #111 — Extract ValidationPackage.Model and portable metadata codecs](https://github.com/nfdi4plants/arc-validate-package-registry/issues/111)
+- [AVPR #112 — Replace AVPRIndex with focused AVPR staging infrastructure](https://github.com/nfdi4plants/arc-validate-package-registry/issues/112)
+- [AVPR #113 — Move registry API and EF nested models under service ownership](https://github.com/nfdi4plants/arc-validate-package-registry/issues/113)
+- [AVPR #114 — Make AVPRClient generated-only and add portable model interop](https://github.com/nfdi4plants/arc-validate-package-registry/issues/114)
+
+Primary moves:
+
+- `src/AVPRIndex/Domain.fs` and the SemVer portion of `Globals.fs`
+  → `src/ValidationPackage.Model/`
+- `src/AVPRIndex/Frontmatter.fs`
+  → `src/ValidationPackage.Codecs/`, replacing YamlDotNet with YAMLicious
+- Domain JSON conversion
+  → Thoth.Json codecs in `src/ValidationPackage.Codecs/`
+- `AVPRRepo.fs`, `BinaryContent.fs`, `MD5Hash.fs`, staging constants, and
+  `ValidationPackageIndex`
+  → focused `src/AVPR.Staging/` modules and `StagedValidationPackage`
+- Nested shared types currently used by
+  `PackageRegistryService/Models/ValidationPackage.cs`
+  → service-owned types in `PackageRegistryService/Models/`
+- `src/AVPRClient/Extensions.cs`
+  → portable mappings in `AVPRClient.Interop` and publication mappings in
+  `AVPRCI`
+
+Outcome:
+
+- Neither ARCExpect nor arc-validate references AVPR indexing infrastructure.
+- `AVPRClient` no longer brings YAML or staging dependencies transitively.
+- The service owns its public and stored representations while the portable
+  model stays infrastructure-free.
+- `AVPRIndex` can be deprecated and removed.
+
+### Milestone 2 — Prepare ARCExpect outputs without waiting for Pyxpecto
+
+Issue:
+
+- [arc-validate #242 — Prepare ARCExpect result and output contracts for transpilation](https://github.com/nfdi4plants/arc-validate/issues/242)
+
+Primary moves:
+
+- AVPR metadata/frontmatter dependencies in `ARCValidationPackage.fs`,
+  `ValidationSummary.fs`, and `TopLevelAPI.fs`
+  → `ValidationPackage.Model` and `ValidationPackage.Codecs`
+- Framework-neutral result types
+  → portable ARCExpect source/project boundary
+- Summary, JUnit, and badge content generation
+  → portable writers consuming ARCExpect `RunSummary`
+- `Expecto.TestRunSummary` conversion and filesystem writes
+  → retained .NET-only compatibility boundary
+- ARCExpect.Core release ownership
+  → registered in `build/ProjectInfo.fs` with package metadata, release notes,
+  and dedicated tests
+
+Outcome:
+
+- Output schemas and writers can be exercised independently of the runner.
+- Existing .NET validation packages continue to use Expecto during the
+  transition.
+- A future Pyxpecto runner replaces an adapter rather than redesigning outputs.
+
+### Milestone 3 — Absorb ARCValidationPackages into the CLI
+
+Issue:
+
+- [arc-validate #243 — Absorb ARCValidationPackages into the arc-validate CLI](https://github.com/nfdi4plants/arc-validate/issues/243)
+
+Primary moves:
+
+- `ARCValidationPackages` config, cache, domain, registry, and install logic
+  → `src/arc-validate/PackageManagement/`
+- `ARCValidationPackages/ScriptExecution.fs`
+  → `src/arc-validate/PackageRunner/`
+- `tests/ARCValidationPackages.Tests/`
+  → package-management and runner coverage under
+  `tests/arc-validate.Tests/`
+
+Defects fixed while moving:
+
+- Honor `Config.PackageCacheFolder`.
+- Make cache writes atomic.
+- Make registry endpoints configurable.
+- Use asynchronous HTTP and status-based error classification.
+- Remove FAKE runtime process dependencies.
+- Replace live-production API tests with injected or local test endpoints.
+
+Outcome:
+
+- Package management is application infrastructure owned by its only in-repo
+  production consumer.
+- Existing cache paths and formats remain compatible.
+- CLI handlers retain only arguments, orchestration, and presentation.
+
+### Milestone 4 — Enforce compatibility and prepare ARC-specific Fable work
+
+Issues:
+
+- [AVPR #115 — Add AVPR contract fixtures and downstream arc-validate compatibility testing](https://github.com/nfdi4plants/arc-validate-package-registry/issues/115)
+- [arc-validate #244 — Prepare ARCExpect ARC-specific APIs for Fable through ARCtrl](https://github.com/nfdi4plants/arc-validate/issues/244)
+
+Primary work:
+
+- AVPR owns canonical model, frontmatter, API JSON, and CWL fixtures.
+- CI packs candidate model, codec, client, and interop artifacts from an
+  explicit AVPR commit and tests arc-validate against them before publication.
+- ARCExpect's ARCTokenization, OBO.NET, Graphoscope, Cytoscape.NET, and
+  ControlledVocabulary usage is mapped to Fable-compatible ARCtrl
+  replacements or explicit blockers.
+- Affected staged packages and compatibility requirements are inventoried
+  before migration.
+
+Outcome:
+
+- Cross-repository drift fails against candidate artifacts instead of after
+  release.
+- ARCExpect's remaining Fable blockers are explicit and can be migrated in
+  independent slices.
+
+### Milestone 5 — Replace the runner after Pyxpecto rollout permits it
+
+Issue:
+
+- [arc-validate #245 — Replace the ARCExpect Expecto boundary after structured Pyxpecto results are available](https://github.com/nfdi4plants/arc-validate/issues/245)
+
+Primary moves:
+
+- Structured case results
+  → added upstream to `Fable.Pyxpecto` on its own release schedule
+- `Expecto.Test` in `ARCValidationPackage`
+  → Pyxpecto's portable test representation
+- Expecto result conversion
+  → Pyxpecto result-to-ARCExpect-`RunSummary` conversion
+- Transitional portable/compatibility boundaries
+  → consolidated into the final transpilable `ARCExpect.Core`
+
+Outcome:
+
+- ARCExpect authoring and execution use one test framework on .NET, JavaScript,
+  and Python.
+- The already-stable result and output contracts do not change during runner
+  replacement.
+- Expecto and the temporary compatibility layer can be removed in a planned
+  major release.
+
+---
+
+## Dependency order
+
+```text
+ValidationPackage.Model
+        |
+        +--> ValidationPackage.Codecs
+        |         |
+        |         +--> AVPR.Staging
+        |         +--> ARCExpect metadata setup
+        |
+        +--> PackageRegistryService mappings/models
+        +--> AVPRClient.Interop
+        +--> ARCExpect portable results/output
+
+AVPR model/client candidate artifacts
+        |
+        +--> cross-repository arc-validate verification
+
+ARCExpect portable result/output contract
+        |
+        +--> later Pyxpecto runner replacement
+```
+
+Milestone 3 can proceed alongside much of Milestones 1 and 2, provided its
+model/client dependencies are updated at an agreed integration point.
+Milestone 5 is intentionally non-blocking for Milestones 1–4.
+
+---
+
+## Compatibility gates
+
+### Public API and generated client
+
+- Preserve lower-camel-case CWL nested fields and the PascalCase `Inputs`
+  metadata wrapper.
+- Preserve scalar public command-input types such as `boolean?`.
+- Verify exact raw API JSON separately from generated-client deserialization.
+- Keep `AVPRClient` regeneration deterministic and generated-only.
+
+### Database
+
+- Verify that service-model changes do not create unintended pending EF model
+  changes.
+- Test intentional migrations and backfills against PostgreSQL; the in-memory
+  test host is not sufficient database coverage.
+- Preserve the normalized database representation of command-input types.
+
+### Validation outputs
+
+- Preserve `.arc-validate-results/<name>@<version>/`.
+- Preserve `validation_summary.json`, `validation_report.xml`, and `badge.svg`
+  paths and documented schema semantics.
+- Prefer semantic/schema equivalence across targets over incidental JSON/XML
+  formatting equality.
+
+### CLI cache and execution
+
+- Preserve the existing application-data cache location and readable cache
+  format.
+- Cover install, list, uninstall, and validation without relying on the live
+  production registry.
+- Use safe process argument handling for FSI and `uv run`.
+
+---
+
+## Deferred decisions
+
+These are related but not part of this roadmap unless explicitly promoted into
+their own issues:
+
+- Split service API DTOs from EF persistence entities. The current decision is
+  one service-owned model for both; reconsider only when the shapes need to
+  evolve independently.
+- Publish ARC specification validation as a validation package.
+- Move `StagingArea/` into a separate repository.
+- Retarget all non-portable projects to a newer .NET target framework.
+- Define the exact final project/package name of the transitional portable
+  ARCExpect boundary before the Pyxpecto cutover.
+
+---
+
+## Roadmap completion
+
+The epic is complete when:
+
+- `AVPRIndex` has no remaining production consumer and is retired.
+- The portable model and codecs are available to AVPR, ARCExpect, and
+  arc-validate without registry infrastructure dependencies.
+- The registry service owns its ASP.NET/EF model and maps explicitly to the
+  portable domain.
+- `AVPRClient` is generated-only.
+- ARCValidationPackages has been absorbed or deliberately retained based on
+  verified external usage.
+- Candidate AVPR artifacts are tested downstream in arc-validate.
+- ARCExpect has a portable result/output contract and a documented path from
+  the temporary Expecto boundary to Pyxpecto.

@@ -14,7 +14,7 @@ or `dev`. Its change detection selects the relevant jobs:
 - main solution builds and tests for index, client, service, or test changes;
 - staging-area syntax and metadata checks for package changes;
 - pre-publication integrity checks and eligible package publication;
-- NuGet publication for versioned index/client releases;
+- NuGet publication for versioned model/index/client releases;
 - registry-service container publication.
 
 Workflow actions, permissions, and release branches are defined under
@@ -76,13 +76,17 @@ initialization path.
 
 ## NuGet releases
 
-For `AVPRIndex` or `AVPRClient`:
+For `ValidationPackage.Model`, `AVPRIndex`, or `AVPRClient`:
 
-1. Update its project package version.
+1. Update its project package version. For `ValidationPackage.Model`, update
+   the version in the packed-package smoke project's `PackageReference` too.
 2. Update its `RELEASE_NOTES.md`.
 3. Run the main solution build and tests.
-4. Merge to `main`; the pipeline publishes the package when its release-note
-   trigger and other gates pass.
+4. For `ValidationPackage.Model`, also run the .NET, JavaScript, and Python
+   portable contract suite described in [testing changes](../development/testing.md).
+5. Merge to `main`; the pipeline publishes the package when its release-note
+   trigger and other gates pass. The model release additionally requires its
+   cross-target and packed-consumer checks.
 
 ## Publishing validation packages
 

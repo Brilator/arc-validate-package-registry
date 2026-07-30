@@ -8,6 +8,8 @@ continuous-quality-control pipelines.
 The repository contains:
 
 - `StagingArea/`: reviewed F# and Python validation-package submissions;
+- `src/ValidationPackage.Model/`: portable validation-package domain types for
+  .NET, JavaScript, and Python;
 - `src/AVPRIndex/`: package metadata, frontmatter, hashing, and index utilities;
 - `src/AVPRClient/`: the generated .NET registry client;
 - `src/AVPRCI/`: publication tooling;
@@ -48,6 +50,18 @@ Run staging-area checks with:
 ```shell
 dotnet build PackageStagingArea.sln --configuration Release
 dotnet test PackageStagingArea.sln --configuration Release --no-build
+```
+
+Run the portable model contract suite on all three targets with:
+
+```shell
+dotnet tool restore
+uv sync --locked
+dotnet run --project tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --configuration Release
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/js --lang javascript --noCache
+npm run test:model:js
+dotnet fable tests/ValidationPackage.Model.Tests/ValidationPackage.Model.Tests.fsproj --outDir artifacts/model-tests/py --lang python --noCache
+uv run --locked python artifacts/model-tests/py/main.py
 ```
 
 With Docker Desktop running, start the registry service, PostgreSQL, and Adminer

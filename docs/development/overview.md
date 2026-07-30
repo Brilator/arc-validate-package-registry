@@ -13,7 +13,8 @@
 
 - .NET SDK pinned by `global.json` (currently .NET 10)
 - Docker and Docker Compose
-- `uv` when developing or checking Python validation packages
+- Node.js and `uv` when developing the portable model or checking Python
+  validation packages
 
 The main solution contains the registry service, index and client libraries,
 CLI, and their tests. `PackageStagingArea.sln` contains the staging-area checks.
@@ -32,9 +33,11 @@ Swagger or `/_version`.
 
 ## Libraries
 
-`AVPRIndex` contains validation-package domain types, frontmatter parsing,
-hashing, and index utilities. `AVPRClient` is the generated and consumer-facing
-.NET client for the registry API.
+`ValidationPackage.Model` is the codec-free domain contract shared by .NET and
+Fable consumers. `AVPRIndex` retains the current registry domain types during
+the additive migration and contains frontmatter parsing, hashing, and index
+utilities. `AVPRClient` is the generated and consumer-facing .NET client for
+the registry API.
 
 Build or test them through the main solution:
 
@@ -42,6 +45,11 @@ Build or test them through the main solution:
 dotnet build arc-validate-package-registry.sln --configuration Release
 dotnet test arc-validate-package-registry.sln --configuration Release
 ```
+
+Portable model tests are a regular Pyxpecto executable. Run the same test
+source on .NET, JavaScript, and Python using the commands in
+[testing changes](testing.md). Python dependencies are declared in the root
+`pyproject.toml`, locked in `uv.lock`, and installed with `uv sync --locked`.
 
 For a NuGet release:
 
