@@ -33,7 +33,7 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="RELEASE_NOTES.md" />
-    <PackageReference Include="Fable.Core" Version="5.0.0" />
+    <PackageReference Include="Fable.Core" Version="5.2.0" />
     <PackageReference Include="Fable.Package.SDK" Version="1.4.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

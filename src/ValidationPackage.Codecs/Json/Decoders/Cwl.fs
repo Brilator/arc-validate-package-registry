@@ -1,18 +1,12 @@
-namespace ValidationPackage.Codecs
+namespace ValidationPackage.Codecs.Json.Decoders
 
-open System
 open Thoth.Json.Core
 open ValidationPackage.Model
 
 [<RequireQualifiedAccess>]
-module CwlJson =
+module internal Cwl =
 
-    let commandInputTypeEncoder (inputType: CommandInputType) =
-        inputType
-        |> CommandInputType.toCwlString
-        |> Encode.string
-
-    let commandInputTypeDecoder: Decoder<CommandInputType> =
+    let commandInputType: Decoder<CommandInputType> =
         Decode.string
         |> Decode.andThen (fun value ->
             try
@@ -23,14 +17,7 @@ module CwlJson =
                 Decode.fail error.Message
         )
 
-    let commandInputBindingEncoder (binding: CommandInputBinding) =
-        Encode.object [
-            "position", Encode.int binding.Position
-            "prefix", Encode.string binding.Prefix
-            "separate", Encode.bool binding.Separate
-        ]
-
-    let commandInputBindingDecoder: Decoder<CommandInputBinding> =
+    let commandInputBinding: Decoder<CommandInputBinding> =
         Decode.object (fun get ->
             CommandInputBinding.create(
                 Position = (
@@ -48,21 +35,12 @@ module CwlJson =
             )
         )
 
-    let commandInputParameterEncoder (parameter: CommandInputParameter) =
-        Encode.object [
-            "id", Encode.string parameter.Id
-            "type", commandInputTypeEncoder parameter.Type
-            "label", Encode.string parameter.Label
-            "doc", Encode.string parameter.Doc
-            "inputBinding", commandInputBindingEncoder parameter.InputBinding
-        ]
-
-    let commandInputParameterDecoder: Decoder<CommandInputParameter> =
+    let commandInputParameter: Decoder<CommandInputParameter> =
         Decode.object (fun get ->
             CommandInputParameter.create(
                 get.Required.Field "id" Decode.string,
-                get.Required.Field "type" commandInputTypeDecoder,
-                get.Required.Field "inputBinding" commandInputBindingDecoder,
+                get.Required.Field "type" commandInputType,
+                get.Required.Field "inputBinding" commandInputBinding,
                 Label = (
                     get.Optional.Field "label" Decode.string
                     |> Option.defaultValue ""

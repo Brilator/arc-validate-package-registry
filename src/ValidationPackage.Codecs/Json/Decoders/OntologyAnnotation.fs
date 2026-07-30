@@ -1,21 +1,14 @@
-namespace ValidationPackage.Codecs
+namespace ValidationPackage.Codecs.Json.Decoders
 
 open Thoth.Json.Core
 open ValidationPackage.Model
 
 [<RequireQualifiedAccess>]
-module OntologyAnnotationJson =
+module internal OntologyAnnotation =
 
-    let encoder (annotation: OntologyAnnotation) =
-        Encode.object [
-            "name", Encode.string annotation.Name
-            "termSourceREF", Encode.string annotation.TermSourceREF
-            "termAccessionNumber", Encode.string annotation.TermAccessionNumber
-        ]
-
-    let decoder: Decoder<OntologyAnnotation> =
+    let decoder: Decoder<ValidationPackage.Model.OntologyAnnotation> =
         Decode.object (fun get ->
-            OntologyAnnotation.create(
+            ValidationPackage.Model.OntologyAnnotation.create(
                 get.Optional.Field "name" Decode.string
                 |> Option.defaultValue "",
                 TermSourceRef = (

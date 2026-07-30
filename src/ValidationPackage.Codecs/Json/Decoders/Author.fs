@@ -1,22 +1,14 @@
-namespace ValidationPackage.Codecs
+namespace ValidationPackage.Codecs.Json.Decoders
 
 open Thoth.Json.Core
 open ValidationPackage.Model
 
 [<RequireQualifiedAccess>]
-module AuthorJson =
+module internal Author =
 
-    let encoder (author: Author) =
-        Encode.object [
-            "fullName", Encode.string author.FullName
-            "email", Encode.string author.Email
-            "affiliation", Encode.string author.Affiliation
-            "affiliationLink", Encode.string author.AffiliationLink
-        ]
-
-    let decoder: Decoder<Author> =
+    let decoder: Decoder<ValidationPackage.Model.Author> =
         Decode.object (fun get ->
-            Author.create(
+            ValidationPackage.Model.Author.create(
                 get.Optional.Field "fullName" Decode.string
                 |> Option.defaultValue "",
                 Email = (

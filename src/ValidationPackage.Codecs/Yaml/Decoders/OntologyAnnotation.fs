@@ -1,21 +1,14 @@
-namespace ValidationPackage.Codecs
+namespace ValidationPackage.Codecs.Yaml.Decoders
 
 open YAMLicious
 open ValidationPackage.Model
 
 [<RequireQualifiedAccess>]
-module OntologyAnnotationYaml =
-
-    let internal encoder (annotation: OntologyAnnotation) =
-        YamlValue.object [
-            "Name", YamlValue.string annotation.Name
-            "TermSourceREF", YamlValue.string annotation.TermSourceREF
-            "TermAccessionNumber", YamlValue.string annotation.TermAccessionNumber
-        ]
+module internal OntologyAnnotation =
 
     let decoder =
         Decode.object (fun get ->
-            OntologyAnnotation.create(
+            ValidationPackage.Model.OntologyAnnotation.create(
                 get.Optional.Field "Name" Decode.string
                 |> Option.defaultValue "",
                 TermSourceRef = (

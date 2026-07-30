@@ -18,21 +18,38 @@
     <Compile Include="..\..\ValidationPackage.Model\ValidationPackageMetadata.fs" />
     <Compile Include="..\FrontmatterLanguage.fs" />
     <Compile Include="..\Frontmatter.fs" />
-    <Compile Include="..\YamlValue.fs" />
-    <Compile Include="..\CwlYaml.fs" />
-    <Compile Include="..\AuthorYaml.fs" />
-    <Compile Include="..\OntologyAnnotationYaml.fs" />
-    <Compile Include="..\ValidationPackageYaml.fs" />
-    <Compile Include="..\JsonRuntime.fs" />
-    <Compile Include="..\CwlJson.fs" />
-    <Compile Include="..\AuthorJson.fs" />
-    <Compile Include="..\OntologyAnnotationJson.fs" />
-    <Compile Include="..\ValidationPackageJson.fs" />
+    <Compile Include="..\Yaml\Encoding.fs" />
+    <Compile Include="..\Yaml\CwlValidation.fs" />
+    <Compile Include="..\Yaml\Encoders\Cwl.fs" />
+    <Compile Include="..\Yaml\Encoders\Author.fs" />
+    <Compile Include="..\Yaml\Encoders\OntologyAnnotation.fs" />
+    <Compile Include="..\Yaml\Encoders\ValidationPackage.fs" />
+    <Compile Include="..\Yaml\Decoders\Cwl.fs" />
+    <Compile Include="..\Yaml\Decoders\Author.fs" />
+    <Compile Include="..\Yaml\Decoders\OntologyAnnotation.fs" />
+    <Compile Include="..\Yaml\Decoders\ValidationPackage.fs" />
+    <Compile Include="..\Yaml\CwlYaml.fs" />
+    <Compile Include="..\Yaml\AuthorYaml.fs" />
+    <Compile Include="..\Yaml\OntologyAnnotationYaml.fs" />
+    <Compile Include="..\Yaml\ValidationPackageYaml.fs" />
+    <Compile Include="..\Json\Runtime.fs" />
+    <Compile Include="..\Json\Encoders\Cwl.fs" />
+    <Compile Include="..\Json\Encoders\Author.fs" />
+    <Compile Include="..\Json\Encoders\OntologyAnnotation.fs" />
+    <Compile Include="..\Json\Encoders\ValidationPackage.fs" />
+    <Compile Include="..\Json\Decoders\Cwl.fs" />
+    <Compile Include="..\Json\Decoders\Author.fs" />
+    <Compile Include="..\Json\Decoders\OntologyAnnotation.fs" />
+    <Compile Include="..\Json\Decoders\ValidationPackage.fs" />
+    <Compile Include="..\Json\CwlJson.fs" />
+    <Compile Include="..\Json\AuthorJson.fs" />
+    <Compile Include="..\Json\OntologyAnnotationJson.fs" />
+    <Compile Include="..\Json\ValidationPackageJson.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Core" Version="5.0.0" />
-    <PackageReference Include="Fable.Python" Version="5.0.0" />
+    <PackageReference Include="Fable.Core" Version="5.2.0" />
+    <PackageReference Include="Fable.Python" Version="5.4.0" />
     <PackageReference Include="YAMLicious" Version="1.0.0" />
     <PackageReference Include="Thoth.Json.Core" Version="0.9.0" />
   </ItemGroup>

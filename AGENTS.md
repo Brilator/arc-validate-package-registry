@@ -57,6 +57,11 @@ Use `./build.sh` instead of `.\build.cmd` on Linux or macOS. Keep CI command
 details in the build project; workflows should install platform toolchains and
 invoke a named target rather than duplicate build logic inline.
 
+Treat the Fable compiler and Python `fable-library` as a coordinated toolchain.
+When either pin changes, update the `uv` lock and run both portable targets;
+the Fable API packages have independent version lines and should use their
+current compatible releases.
+
 Prefer focused builds/tests while developing, then run the affected solution before handing off. Do not perform a non-dry-run publication unless the user explicitly requests it and provides the necessary authorization.
 
 ## Validation package rules

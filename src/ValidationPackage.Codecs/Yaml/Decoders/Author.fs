@@ -1,22 +1,14 @@
-namespace ValidationPackage.Codecs
+namespace ValidationPackage.Codecs.Yaml.Decoders
 
 open YAMLicious
 open ValidationPackage.Model
 
 [<RequireQualifiedAccess>]
-module AuthorYaml =
-
-    let internal encoder (author: Author) =
-        YamlValue.object [
-            "FullName", YamlValue.string author.FullName
-            "Email", YamlValue.string author.Email
-            "Affiliation", YamlValue.string author.Affiliation
-            "AffiliationLink", YamlValue.string author.AffiliationLink
-        ]
+module internal Author =
 
     let decoder =
         Decode.object (fun get ->
-            Author.create(
+            ValidationPackage.Model.Author.create(
                 get.Optional.Field "FullName" Decode.string
                 |> Option.defaultValue "",
                 Email = (

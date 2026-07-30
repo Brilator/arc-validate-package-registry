@@ -32,16 +32,39 @@ The package must:
 src/ValidationPackage.Codecs/
   FrontmatterLanguage.fs
   Frontmatter.fs
-  YamlValue.fs
-  CwlYaml.fs
-  AuthorYaml.fs
-  OntologyAnnotationYaml.fs
-  ValidationPackageYaml.fs
-  JsonRuntime.fs
-  CwlJson.fs
-  AuthorJson.fs
-  OntologyAnnotationJson.fs
-  ValidationPackageJson.fs
+  Yaml/
+    Encoding.fs
+    CwlValidation.fs
+    Encoders/
+      Cwl.fs
+      Author.fs
+      OntologyAnnotation.fs
+      ValidationPackage.fs
+    Decoders/
+      Cwl.fs
+      Author.fs
+      OntologyAnnotation.fs
+      ValidationPackage.fs
+    CwlYaml.fs
+    AuthorYaml.fs
+    OntologyAnnotationYaml.fs
+    ValidationPackageYaml.fs
+  Json/
+    Runtime.fs
+    Encoders/
+      Cwl.fs
+      Author.fs
+      OntologyAnnotation.fs
+      ValidationPackage.fs
+    Decoders/
+      Cwl.fs
+      Author.fs
+      OntologyAnnotation.fs
+      ValidationPackage.fs
+    CwlJson.fs
+    AuthorJson.fs
+    OntologyAnnotationJson.fs
+    ValidationPackageJson.fs
   targets/
     ValidationPackage.Codecs.Javascript.fsproj
     ValidationPackage.Codecs.Python.fsproj
@@ -58,22 +81,23 @@ tests/ValidationPackage.Codecs.Tests/
 tests/ValidationPackage.Codecs.PackageSmoke/
 ```
 
-The split source layout mirrors the model: CWL codecs may stay grouped, while
-author, ontology annotation, frontmatter, and top-level metadata concerns live
-in separate files.
+The source layout separates formats first and encoding direction second.
+Within each direction, CWL may stay grouped while author, ontology annotation,
+and top-level metadata concerns live in separate files. The format-root modules
+are compatibility facades over the split implementations.
 
 ## Codec decisions
 
 ### YAML and frontmatter
 
-- Use YAMLicious to parse YAML into its portable syntax tree and decode model
-  fields.
+- Use YAMLicious to parse, decode, and write its portable YAML syntax tree.
 - Keep frontmatter extraction as pure string logic with exact F#/Python
   comment and binding delimiters and newline normalization.
-- Emit only the supported validation-package shape with a small portable YAML
-  writer. YAMLicious's Python writer is currently unusable with Fable 5 because
-  of the open generated-code defect in
+- Use Fable 5.11.0, which contains the Python name-generation fix reported
+  against the YAMLicious writer in
   [YAMLicious #20](https://github.com/CSBiology/YAMLicious/issues/20).
+- Keep the compiler and Python runtime aligned at 5.11.0; use the current
+  Fable 5 API packages (`Fable.Core` 5.2.0 and `Fable.Python` 5.4.0).
 - Quote emitted string scalars so metadata containing YAML punctuation,
   whitespace, or line breaks remains unambiguous.
 
@@ -116,6 +140,4 @@ in separate files.
   AVPR staging migration work.
 - Switching ARCExpect metadata setup to the new package belongs to the
   arc-validate roadmap.
-- Removing the local YAML emitter should be reconsidered after YAMLicious #20
-  is fixed and a compatible release is available.
 - Canonical cross-repository fixtures remain part of AVPR #115.
