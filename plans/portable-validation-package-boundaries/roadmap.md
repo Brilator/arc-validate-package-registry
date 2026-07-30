@@ -3,8 +3,9 @@
 ## Status and planning policy
 
 **Status:** implementation underway. The portable `ValidationPackage.Model`
-and `ValidationPackage.Codecs` slices of AVPR #111 are implemented; production
-consumer migration and the remaining roadmap work are pending.
+and `ValidationPackage.Codecs` slices of AVPR #111 are implemented. AVPR #112
+has started with the focused `AVPR.Staging` boundary; production consumer
+migration and the remaining roadmap work are pending.
 
 GitHub tracking:
 

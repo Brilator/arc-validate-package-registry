@@ -12,6 +12,8 @@ The repository contains:
   .NET, JavaScript, and Python;
 - `src/ValidationPackage.Codecs/`: portable YAML frontmatter and JSON codecs for
   the shared model on .NET, JavaScript, and Python;
+- `src/AVPR.Staging/`: internal repository discovery, normalized content, and
+  content hashing for staged validation packages;
 - `src/AVPRIndex/`: package metadata, frontmatter, hashing, and index utilities;
 - `src/AVPRClient/`: the generated .NET registry client;
 - `src/AVPRCI/`: publication tooling;

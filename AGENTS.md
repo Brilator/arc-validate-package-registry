@@ -12,6 +12,7 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `StagingAreaTests/`: package layout, metadata, naming, and script sanity checks.
 - `src/ValidationPackage.Model/`: portable metadata, CWL inputs, package identity, and SemVer behavior for .NET and Fable.
 - `src/AVPRIndex/`: F# domain types and utilities for package metadata, frontmatter, hashes, and indexes.
+- `src/AVPR.Staging/`: internal staged-package discovery, normalized content, and content hashing built on the portable model/codecs.
 - `src/AVPRClient/`: generated/consumer-facing .NET API client.
 - `src/AVPRCI/`: CLI used to publish packages.
 - `src/PackageRegistryService/`: ASP.NET Core registry API, website, database model, and migrations.

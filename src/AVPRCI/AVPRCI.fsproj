@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Domain.fs" />
     <Compile Include="CLIArgs.fs" />
+    <Compile Include="ClientMappings.fs" />
     <Compile Include="API.fs" />
     <Compile Include="CommandHandling.fs" />
     <Compile Include="Program.fs" />
@@ -19,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AVPRIndex\AVPRIndex.fsproj" />
+    <ProjectReference Include="..\AVPR.Staging\AVPR.Staging.fsproj" />
     <ProjectReference Include="..\AVPRClient\AVPRClient.csproj" />
   </ItemGroup>
 

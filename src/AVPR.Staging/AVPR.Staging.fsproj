@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="StagingConstants.fs" />
+    <Compile Include="NormalizedContent.fs" />
+    <Compile Include="ContentHash.fs" />
+    <Compile Include="DateTimeOffsetNormalization.fs" />
+    <Compile Include="StagedValidationPackage.fs" />
+    <Compile Include="StagingRepository.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
+    <ProjectReference Include="..\ValidationPackage.Codecs\ValidationPackage.Codecs.fsproj" />
+  </ItemGroup>
+
+</Project>

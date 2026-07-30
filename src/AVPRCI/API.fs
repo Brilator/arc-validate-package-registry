@@ -1,16 +1,12 @@
 ﻿module API
 
 open System
-open System.IO
-open AVPRIndex
-open System.IO
-open System.Text.Json
+open AVPR.Staging
 
 open Argu
 open CLIArgs
 open Domain
 
-open AVPRIndex
 open AVPRClient
 
 type PublishAPI =
@@ -44,20 +40,20 @@ type PublishAPI =
 
         //! Paths are relative to the root of the project, since the script is executed from the repo root in CI
         let all_staged_packages = 
-            AVPRRepo.getStagedPackages(repo_root)
+            StagingRepository.discover(repo_root)
 
         let already_published_pending_packages = 
             all_staged_packages
             |> Array.filter (fun i -> i.Metadata.Publish)
             |> Array.filter (fun i -> 
-                Array.exists (fun (p: AVPRClient.ValidationPackage) -> p.IdentityEquals(i)) published_packages
+                Array.exists (fun p -> ClientMappings.identityEquals p i) published_packages
             )
 
         let new_packages =
             all_staged_packages
             |> Array.filter (fun i -> i.Metadata.Publish)
             |> Array.filter (fun i -> 
-                not <| Array.exists (fun (p: AVPRClient.ValidationPackage) -> p.IdentityEquals(i)) published_packages
+                not <| Array.exists (fun p -> ClientMappings.identityEquals p i) published_packages
             )
         
         if verbose then
@@ -68,14 +64,14 @@ type PublishAPI =
         already_published_pending_packages
         |> Array.iter (fun i -> 
             try
-                i.toPackageContentHash(true)
+                ClientMappings.toPackageContentHash true i
                 |> client.VerifyPackageContentAsync
                 |> Async.AwaitTask
                 |> Async.RunSynchronously
             with e ->
                 if isDryRun then
                     printfn $"[E]: {e.Message}"
-                    printfn $"[{i.Metadata.Name}@{ValidationPackageIndex.getSemanticVersionString i}]: Package content hash does not match the published package"
+                    printfn $"[{i.Metadata.Name}@{StagedValidationPackage.getSemanticVersionString i}]: Package content hash does not match the published package"
                     printfn $"  Make sure that the package file has not been modified after publication! ({i.RepoPath})"
                 else
                     failwith $"[{i.RepoPath}]: Package content hash does not match the published package"
@@ -90,7 +86,7 @@ type PublishAPI =
             printfn ""
             
             new_packages
-            |> Array.iter (fun i -> printfn $"[{i.Metadata.Name}@{ValidationPackageIndex.getSemanticVersionString i}]")
+            |> Array.iter (fun i -> printfn $"[{i.Metadata.Name}@{StagedValidationPackage.getSemanticVersionString i}]")
             
             if verbose then 
                 printfn ""
@@ -98,7 +94,7 @@ type PublishAPI =
                 printfn ""
                 new_packages
                 |> Array.iter (fun i ->
-                    let p = i.toValidationPackage()
+                    let p = ClientMappings.toValidationPackage DateTimeOffset.Now i
                     AVPRClient.ValidationPackage.printJson p
                 )
         else
@@ -107,9 +103,9 @@ type PublishAPI =
             printfn ""
             new_packages
             |> Array.iter (fun i ->
-                let p = i.toValidationPackage()
+                let p = ClientMappings.toValidationPackage DateTimeOffset.Now i
                 try
-                    printfn $"[{i.Metadata.Name}@{ValidationPackageIndex.getSemanticVersionString i}]: Publishing package..."
+                    printfn $"[{i.Metadata.Name}@{StagedValidationPackage.getSemanticVersionString i}]: Publishing package..."
                     p
                     |> client.CreatePackageAsync
                     |> Async.AwaitTask

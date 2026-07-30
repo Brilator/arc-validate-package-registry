@@ -82,6 +82,10 @@ jobs:
               - src/AVPRClient/**
             index:
               - src/AVPRIndex/**
+              - src/AVPR.Staging/**
+              - src/AVPRCI/**
+              - tests/AVPR.Staging.Tests/**
+              - tests/AVPRCI.Tests/**
             model:
               - src/ValidationPackage.Model/**
               - tests/ValidationPackage.Model.Tests/**
@@ -116,7 +120,7 @@ jobs:
         id: set-triggers
         run: |
           echo "trigger-build-and-test-projects=${{ steps.changed-files-yaml.outputs.tests_any_modified == 'true' || steps.changed-files-yaml.outputs.api_any_modified == 'true' || steps.changed-files-yaml.outputs.client_any_modified == 'true' || steps.changed-files-yaml.outputs.index_any_modified == 'true' || steps.changed-files-yaml.outputs.model_any_modified == 'true' || steps.changed-files-yaml.outputs.codecs_any_modified == 'true'}}" >> $GITHUB_OUTPUT
-          echo "trigger-release-index=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.index_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
+          echo "trigger-release-index=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.index_all_modified_files, 'src/AVPRIndex/RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-client=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.client_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-model=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.model_all_modified_files, 'RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
           echo "trigger-release-codecs=${{github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.decide-on-dry-run.outputs.dry_run == 'false' && contains(steps.changed-files-yaml.outputs.codecs_all_modified_files, 'src/ValidationPackage.Codecs/RELEASE_NOTES.md')}}" >> $GITHUB_OUTPUT
