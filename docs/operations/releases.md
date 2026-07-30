@@ -6,6 +6,7 @@
 - [Service versions and release notes](#service-versions-and-release-notes)
 - [Manual service deployment](#manual-service-deployment)
 - [NuGet releases](#nuget-releases)
+  - [AVPRIndex retirement](#avprindex-retirement)
 - [Publishing validation packages](#publishing-validation-packages)
 
 The GitHub Actions pipeline runs for pushes and pull requests targeting `main`

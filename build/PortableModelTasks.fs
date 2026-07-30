@@ -16,7 +16,7 @@ let private modelPackageSmokeDir = Path.Combine(portableArtifactsDir, "model-pac
 let private fable project language outputDirectory =
     runDotNet
         "fable"
-        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache"
+        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache --noRestore"
         "."
 
 let testModelDotNet =

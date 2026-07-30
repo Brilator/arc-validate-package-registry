@@ -16,7 +16,7 @@ let private codecsPackageSmokeDir = Path.Combine(portableArtifactsDir, "codec-pa
 let private fable project language outputDirectory =
     runDotNet
         "fable"
-        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache"
+        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache --noRestore"
         "."
 
 let testCodecsDotNet =
