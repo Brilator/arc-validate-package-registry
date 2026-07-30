@@ -13,10 +13,12 @@ open PackageTasks
 let private codecsTestsDir = Path.Combine(portableArtifactsDir, "codec-tests")
 let private codecsPackageSmokeDir = Path.Combine(portableArtifactsDir, "codec-package-smoke")
 
-let private fable project language outputDirectory =
+let private fable project language outputDirectory noRestore =
+    let restoreArgument = if noRestore then " --noRestore" else ""
+
     runDotNet
         "fable"
-        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache --noRestore"
+        $"{project} --outDir \"{outputDirectory}\" --lang {language} --noCache{restoreArgument}"
         "."
 
 let testCodecsDotNet =
@@ -30,7 +32,7 @@ let testCodecsDotNet =
 let testCodecsJavaScript =
     BuildTask.create "TestCodecsJavaScript" [ testCodecsDotNet ] {
         let outputDirectory = Path.Combine(codecsTestsDir, "javascript", "out")
-        fable codecsJavaScriptTestsProject "javascript" outputDirectory
+        fable codecsJavaScriptTestsProject "javascript" outputDirectory false
         runCommand "node" [ Path.Combine(codecsTestsDir, "javascript", "Main.js") ] "."
     }
 
@@ -47,7 +49,7 @@ let testCodecsPython =
                 (pythonPath nestedOutputDirectory)
                 (pythonPath entryPoint)
 
-        fable codecsPythonTestsProject "python" outputDirectory
+        fable codecsPythonTestsProject "python" outputDirectory false
         runUv [ "run"; "--locked"; "python"; "-c"; command ] "."
     }
 
@@ -76,11 +78,11 @@ let testCodecsPackage =
             "."
 
         let javaScriptOutput = Path.Combine(codecsPackageSmokeDir, "javascript")
-        fable codecsPackageSmokeProject "javascript" javaScriptOutput
+        fable codecsPackageSmokeProject "javascript" javaScriptOutput true
         runCommand "node" [ Path.Combine(javaScriptOutput, "Program.js") ] "."
 
         let pythonOutput = Path.Combine(codecsPackageSmokeDir, "python")
-        fable codecsPackageSmokeProject "python" pythonOutput
+        fable codecsPackageSmokeProject "python" pythonOutput true
         runUv [ "run"; "--locked"; "python"; Path.Combine(pythonOutput, "program.py") ] "."
     }
 
