@@ -71,8 +71,8 @@ let private writeVersionedJavaScriptManifest sourceDirectory version outputDirec
             .Replace(File.ReadAllText source, $"\"version\": \"{version}\"", 1)
 
     let content =
-        Regex("\"validationpackage-model\"\\s*:\\s*\"[^\"]+\"")
-            .Replace(content, $"\"validationpackage-model\": \"{modelVersion}\"", 1)
+        Regex("\"@nfdi4plants/validationpackage-model\"\\s*:\\s*\"[^\"]+\"")
+            .Replace(content, $"\"@nfdi4plants/validationpackage-model\": \"{modelVersion}\"", 1)
 
     File.WriteAllText(target, content)
     File.Copy(Path.Combine(sourceDirectory, "index.js"), Path.Combine(outputDirectory, "index.js"), true)
@@ -164,7 +164,7 @@ let private externalizeCodecsModelJavaScript outputDirectory =
     rewriteFiles
         outputDirectory
         "\"(?:\\.\\./)+ValidationPackage\\.Model/([^\"]+)\""
-        "\"validationpackage-model/$1\""
+        "\"@nfdi4plants/validationpackage-model/$1\""
     deleteDirectoryIfPresent (Path.Combine(outputDirectory, "ValidationPackage.Model"))
 
 let private externalizeCodecsModelPython packageDirectory =

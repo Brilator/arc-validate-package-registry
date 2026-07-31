@@ -1,5 +1,5 @@
 {
-  "name": "validationpackage-codecs",
+  "name": "@nfdi4plants/validationpackage-codecs",
   "version": "0.0.0",
   "description": "Portable YAML frontmatter and JSON codecs for ARC validation packages.",
   "type": "module",
@@ -14,7 +14,7 @@
     "./*": "./*"
   },
   "dependencies": {
-    "validationpackage-model": "0.0.0"
+    "@nfdi4plants/validationpackage-model": "0.0.0"
   },
   "files": [
     "*.js",

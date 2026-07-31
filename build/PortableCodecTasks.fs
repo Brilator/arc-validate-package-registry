@@ -110,8 +110,8 @@ let testNativeValidationPackages =
         runNpm
             [
                 "install"
-                exactlyOneArtifact "validationpackage-model-*.tgz"
-                exactlyOneArtifact "validationpackage-codecs-*.tgz"
+                exactlyOneArtifact "nfdi4plants-validationpackage-model-*.tgz"
+                exactlyOneArtifact "nfdi4plants-validationpackage-codecs-*.tgz"
                 "--no-audit"
                 "--no-fund"
             ]

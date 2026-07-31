@@ -4,8 +4,8 @@ import {
   CommandInputType,
   CwlPrimitive,
   ValidationPackageMetadata
-} from "validationpackage-model";
-import { ValidationPackageJson } from "validationpackage-codecs";
+} from "@nfdi4plants/validationpackage-model";
+import { ValidationPackageJson } from "@nfdi4plants/validationpackage-codecs";
 
 const metadata = ValidationPackageMetadata.create(
   "native-package",

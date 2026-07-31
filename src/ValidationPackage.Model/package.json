@@ -1,5 +1,5 @@
 {
-  "name": "validationpackage-model",
+  "name": "@nfdi4plants/validationpackage-model",
   "version": "0.0.0",
   "description": "Portable metadata and CWL input model for ARC validation packages.",
   "type": "module",
