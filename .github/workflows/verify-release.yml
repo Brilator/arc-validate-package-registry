@@ -1,0 +1,40 @@
+name: "Verify package release"
+
+on:
+  workflow_call:
+    inputs:
+      portable_target:
+        description: "Optional portable test target required by this package"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test-core:
+    name: "Build and test projects"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestSolution
+      windows: true
+      ubuntu: true
+      macos: true
+
+  test-portable:
+    name: "Test portable package"
+    if: inputs.portable_target != ''
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: ${{ inputs.portable_target }}
+      install-node: true
+      install-python: true
+      install-uv: true
+
+  downstream-compatibility:
+    name: "Test pinned arc-validate against AVPR candidates"
+    needs: test-core
+    uses: ./.github/workflows/downstream-compatibility.yml
+    with:
+      arc-validate-ref: 2df6520a5ae927cff69cf917a6b511b175516753

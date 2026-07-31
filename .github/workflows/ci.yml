@@ -1,0 +1,80 @@
+name: "Core CI"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - src/**
+      - "!src/PackageRegistryService/**"
+      - tests/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - "*.sln"
+      - "*.slnx"
+      - global.json
+      - Directory.Build.props
+      - Directory.Packages.props
+      - .config/**
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/ci.yml
+      - .github/workflows/run-build-target.yml
+      - .github/workflows/downstream-compatibility.yml
+      - .github/workflows/release-package.yml
+      - .github/workflows/release-client.yml
+      - .github/workflows/release-client-interop.yml
+      - .github/workflows/release-model.yml
+      - .github/workflows/release-codecs.yml
+      - .github/workflows/verify-release.yml
+      - .github/actions/setup-portable/**
+  push:
+    branches: [main, dev]
+    paths:
+      - src/**
+      - "!src/PackageRegistryService/**"
+      - tests/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - "*.sln"
+      - "*.slnx"
+      - global.json
+      - Directory.Build.props
+      - Directory.Packages.props
+      - .config/**
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/ci.yml
+      - .github/workflows/run-build-target.yml
+      - .github/workflows/downstream-compatibility.yml
+      - .github/workflows/release-package.yml
+      - .github/workflows/release-client.yml
+      - .github/workflows/release-client-interop.yml
+      - .github/workflows/release-model.yml
+      - .github/workflows/release-codecs.yml
+      - .github/workflows/verify-release.yml
+      - .github/actions/setup-portable/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Build and test projects"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestSolution
+      windows: true
+      ubuntu: true
+      macos: true
+
+  downstream-compatibility:
+    name: "Test pinned arc-validate against AVPR candidates"
+    needs: test
+    uses: ./.github/workflows/downstream-compatibility.yml
+    with:
+      arc-validate-ref: 2df6520a5ae927cff69cf917a6b511b175516753

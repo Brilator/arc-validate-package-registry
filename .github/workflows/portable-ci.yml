@@ -1,0 +1,72 @@
+name: "Portable package CI"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - tests/ValidationPackage.Model.Tests/**
+      - tests/ValidationPackage.Model.PackageSmoke/**
+      - tests/ValidationPackage.Codecs.Tests/**
+      - tests/ValidationPackage.Codecs.PackageSmoke/**
+      - tests/ValidationPackage.NativePackageSmoke/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - .config/dotnet-tools.json
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/portable-ci.yml
+      - .github/workflows/run-build-target.yml
+      - .github/workflows/release-model.yml
+      - .github/workflows/release-codecs.yml
+      - .github/workflows/verify-release.yml
+      - .github/actions/setup-portable/**
+  push:
+    branches: [main, dev]
+    paths:
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - tests/ValidationPackage.Model.Tests/**
+      - tests/ValidationPackage.Model.PackageSmoke/**
+      - tests/ValidationPackage.Codecs.Tests/**
+      - tests/ValidationPackage.Codecs.PackageSmoke/**
+      - tests/ValidationPackage.NativePackageSmoke/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - .config/dotnet-tools.json
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/portable-ci.yml
+      - .github/workflows/run-build-target.yml
+      - .github/workflows/release-model.yml
+      - .github/workflows/release-codecs.yml
+      - .github/workflows/verify-release.yml
+      - .github/actions/setup-portable/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model:
+    name: "Test portable model"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestPortableModel
+      install-node: true
+      install-python: true
+      install-uv: true
+
+  codecs:
+    name: "Test portable codecs"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestPortableCodecs
+      install-node: true
+      install-python: true
+      install-uv: true

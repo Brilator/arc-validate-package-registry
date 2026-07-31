@@ -1,0 +1,81 @@
+name: "Release ValidationPackage.Codecs"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: "Verify Codecs release"
+    uses: ./.github/workflows/verify-release.yml
+    with:
+      portable_target: TestPortableCodecs
+
+  publish:
+    name: "Publish Codecs packages"
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up portable package toolchain
+        uses: ./.github/actions/setup-portable
+
+      - name: Install npm with trusted-publishing support
+        run: npm install --global npm@11.5.1
+
+      - name: Pack Codecs
+        run: ./build.sh PackCodecs
+
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish Codecs to NuGet
+        run: dotnet nuget push ./artifacts/packages/ValidationPackage.Codecs.*.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Publish Codecs to npm
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(artifacts/packages/nfdi4plants-validationpackage-codecs-*.tgz)
+          if [[ ${#packages[@]} -ne 1 ]]; then
+            echo "Expected exactly one Codecs npm package, found ${#packages[@]}." >&2
+            exit 1
+          fi
+
+          manifest=artifacts/portable/validationpackage-codecs/javascript/package.json
+          package_name="$(node -p "require('./$manifest').name")"
+          package_version="$(node -p "require('./$manifest').version")"
+          if npm view "${package_name}@${package_version}" version >/dev/null 2>&1; then
+            echo "${package_name}@${package_version} is already published; skipping."
+          else
+            npm publish "${packages[0]}" --access public
+          fi
+
+      - name: Stage Codecs wheel
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(artifacts/packages/validationpackage_codecs-*.whl)
+          if [[ ${#packages[@]} -ne 1 ]]; then
+            echo "Expected exactly one Codecs wheel, found ${#packages[@]}." >&2
+            exit 1
+          fi
+          mkdir -p artifacts/pypi
+          cp "${packages[0]}" artifacts/pypi/
+
+      - name: Publish Codecs to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          packages-dir: artifacts/pypi
+          skip-existing: true

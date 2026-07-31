@@ -5,18 +5,24 @@
 - [Branch roles](#branch-roles)
 - [Service versions and release notes](#service-versions-and-release-notes)
 - [Manual service deployment](#manual-service-deployment)
-- [NuGet releases](#nuget-releases)
+- [Package releases](#package-releases)
+  - [Portable package releases](#portable-package-releases)
+  - [Client package releases](#client-package-releases)
+  - [Trusted-publisher configuration](#trusted-publisher-configuration)
   - [AVPRIndex retirement](#avprindex-retirement)
 - [Publishing validation packages](#publishing-validation-packages)
 
-The GitHub Actions pipeline runs for pushes and pull requests targeting `main`
-or `dev`. Its change detection selects the relevant jobs:
+GitHub Actions automation runs for pushes and pull requests targeting `main`
+or `dev`, split by responsibility:
 
-- main solution builds and tests for index, client, service, or test changes;
-- staging-area syntax and metadata checks for package changes;
-- pre-publication integrity checks and eligible package publication;
-- trusted NuGet publication for versioned model/codecs/index/client releases;
-- registry-service container publication.
+- `ci.yml` runs path-focused main solution tests and downstream compatibility;
+- `portable-ci.yml` runs Model and Codecs contract suites on .NET, JavaScript,
+  and Python, including packed consumers;
+- `staging-ci.yml` runs staging-area syntax and metadata checks on Windows;
+- `service-image.yml` gates registry-service container publication on the main
+  solution and downstream compatibility;
+- package-specific manual workflows rerun their required gates before entering
+  the protected publishing environment.
 
 Workflow actions, permissions, and release branches are defined under
 `.github/workflows/` in the repository.
@@ -26,8 +32,11 @@ Workflow actions, permissions, and release branches are defined under
 - `dev` is the long-lived integration branch. Service changes publish the
   `ghcr.io/nfdi4plants/avpr:dev` image for the development instance.
 - `main` is the production branch. Service changes publish
-  `ghcr.io/nfdi4plants/avpr:main`; NuGet and production package releases are
-  gated to this branch.
+  `ghcr.io/nfdi4plants/avpr:main`.
+
+No branch push publishes library packages. Package releases are explicit
+manual workflow dispatches from a reviewed repository revision and enter the
+protected `release` environment before publication.
 
 Each service build also publishes an immutable `sha-<short-sha>` tag. Prefer the
 SHA tag for manual deployment; `main` and `dev` are convenient moving aliases.
@@ -75,7 +84,71 @@ table already exists, startup does not migrate or seed the database. Images
 built from `main`, `local`, or any other channel never use this deployed-dev
 initialization path.
 
-## NuGet releases
+## Package releases
+
+For every library package:
+
+1. Update the project package version and `RELEASE_NOTES.md`. Update exact
+   packed-consumer pins when required.
+2. Run the focused target and `TestSolution` as described in
+   [testing changes](../development/testing.md).
+3. Push the reviewed revision.
+4. Manually dispatch that package's release workflow against the intended ref.
+5. Approve the protected `release` environment when configured to require it.
+
+Release workflows rerun their required tests and downstream compatibility
+before publishing. No `RELEASE_NOTES.md` change or branch push publishes a
+library package automatically.
+
+### Portable package releases
+
+`release-model.yml` and `release-codecs.yml` each run the core, portable, and
+downstream gates, then call `PackModel` or `PackCodecs` exactly once. That one
+build produces the NuGet package, npm tarball, and Python wheel published by the
+same job. Release Model before Codecs when both versions change because Codecs
+depends on Model in all three ecosystems.
+
+Retries are safe: NuGet uses `--skip-duplicate`, npm checks whether the exact
+package version already exists before publishing, and PyPI uses
+`skip-existing`.
+
+The JavaScript package names are npm-scoped, but this does not change emitted
+type or namespace names. Python distribution names use hyphens while Python
+imports use `validation_package_model` and `validation_package_codecs`.
+
+### Client package releases
+
+`release-client.yml` and `release-client-interop.yml` rerun `TestSolution` and
+downstream compatibility, then call the reusable `release-package.yml` NuGet
+publisher with `PackClient` or `PackClientInterop`. Interop remains independently
+versioned so consumers can opt into portable model conversion.
+
+### Trusted-publisher configuration
+
+All policies use repository owner `nfdi4plants`, repository
+`arc-validate-package-registry`, and environment `release`.
+
+| Package | Registry | Trusted workflow |
+| --- | --- | --- |
+| `ValidationPackage.Model` | NuGet | `release-model.yml` |
+| `@nfdi4plants/validationpackage-model` | npm | `release-model.yml` |
+| `validationpackage-model` | PyPI | `release-model.yml` |
+| `ValidationPackage.Codecs` | NuGet | `release-codecs.yml` |
+| `@nfdi4plants/validationpackage-codecs` | npm | `release-codecs.yml` |
+| `validationpackage-codecs` | PyPI | `release-codecs.yml` |
+| `AVPRClient` | NuGet | `release-package.yml` |
+| `AVPRClient.Interop` | NuGet | `release-package.yml` |
+
+For npm, allow the `npm publish` action. For PyPI, the workflow is top-level
+and contains the publish job directly; do not move it into a reusable workflow.
+For Client and Interop, NuGet validates the called `release-package.yml` through
+the `job_workflow_ref` OIDC claim. Model and Codecs publish directly from their
+top-level package workflows, so their NuGet policies name those workflows.
+
+The publish jobs request `id-token: write`. `NuGet/login` exchanges OIDC for a
+temporary API key; npm and PyPI also exchange OIDC without repository tokens.
+Store only the nuget.org profile name as `NUGET_USER`, and do not restore a
+long-lived `NUGET_KEY`, npm token, or PyPI token.
 
 ### AVPRIndex retirement
 
@@ -89,48 +162,6 @@ Generated-client consumers that need portable model conversion should use
 
 Published validation-package scripts that reference an existing `AVPRIndex`
 version remain immutable and continue to resolve that historical package.
-
-For `ValidationPackage.Model`, `ValidationPackage.Codecs`, `AVPRClient`, or
-`AVPRClient.Interop`:
-
-1. Update its project package version. For `ValidationPackage.Model`, update
-   the version in the packed-package smoke project's `PackageReference` too.
-2. Update its `RELEASE_NOTES.md`.
-3. Run `./build.sh TestSolution` (or `.\build.cmd TestSolution` on Windows).
-4. For `ValidationPackage.Model` or `ValidationPackage.Codecs`, run its
-   `TestPortableModel` or `TestPortableCodecs` build target described in
-   [testing changes](../development/testing.md).
-5. Merge to `main`; the pipeline publishes the package when its release-note
-   trigger and other gates pass. The model release additionally requires its
-   cross-target and packed-consumer checks.
-
-Use `PackClientInterop` to inspect the interop package locally. It is released
-independently from the generated client so consumers can opt into the portable
-model dependency without adding it to every `AVPRClient` installation.
-
-NuGet publishing is keyless. The reusable release job enters the `release`
-GitHub environment, requests an OIDC token, and exchanges it through
-`NuGet/login` for a one-hour, single-use API key immediately before pushing.
-No long-lived NuGet API key is stored in GitHub.
-
-Repository administrators must configure both sides of the trust relationship:
-
-1. Create a GitHub Actions environment named `release`. Optional required
-   reviewers on this environment turn package publication into an approval
-   gate without changing the workflow.
-2. Add a nuget.org trusted-publishing policy with repository owner
-   `nfdi4plants`, repository `arc-validate-package-registry`, workflow file
-   `release-package.yml`, and environment `release`. Enter only the workflow
-   filename, not `.github/workflows/release-package.yml`.
-3. Store the nuget.org profile name associated with that policy as the
-   repository secret `NUGET_USER`. This is an identifier, not an API key.
-4. Remove the obsolete `NUGET_KEY` secret after the trusted publisher has been
-   configured and a release has succeeded.
-
-The package jobs are selected by `pipeline.yml`, but publication executes in
-the reusable `release-package.yml` workflow. NuGet validates GitHub's
-`job_workflow_ref` OIDC claim, which identifies that called workflow. Re-running
-a partially successful release is safe because pushes use `--skip-duplicate`.
 
 ## Publishing validation packages
 

@@ -1,0 +1,103 @@
+name: "Service image"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - src/PackageRegistryService/**
+      - src/AVPR.Staging/**
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - StagingArea/**
+      - docs/**
+      - global.json
+      - Directory.Build.props
+      - Directory.Packages.props
+      - .dockerignore
+      - .github/workflows/service-image.yml
+      - .github/workflows/run-build-target.yml
+      - .github/workflows/downstream-compatibility.yml
+  push:
+    branches: [main, dev]
+    paths:
+      - src/PackageRegistryService/**
+      - src/AVPR.Staging/**
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - StagingArea/**
+      - docs/**
+      - global.json
+      - Directory.Build.props
+      - Directory.Packages.props
+      - .dockerignore
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run validation without publishing the image"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Build and test service dependencies"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestSolution
+      windows: true
+      ubuntu: true
+      macos: true
+
+  downstream-compatibility:
+    name: "Test pinned arc-validate against AVPR candidates"
+    needs: test
+    uses: ./.github/workflows/downstream-compatibility.yml
+    with:
+      arc-validate-ref: 2df6520a5ae927cff69cf917a6b511b175516753
+
+  publish:
+    name: "Publish service image"
+    needs: downstream-compatibility
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry-run == false)
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: nfdi4plants/avpr
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the container registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5.5.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5.1.0
+        with:
+          context: .
+          file: ./src/PackageRegistryService/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            AVPR_BUILD_REVISION=${{ github.sha }}
+            AVPR_BUILD_CHANNEL=${{ github.ref_name }}
+            AVPR_BUILD_CREATED=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}

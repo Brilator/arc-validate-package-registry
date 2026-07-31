@@ -54,11 +54,15 @@ source on .NET, JavaScript, and Python using the commands in
 [testing changes](testing.md). Python dependencies are declared in the root
 `pyproject.toml`, locked in `uv.lock`, and installed with `uv sync --locked`.
 
-For a NuGet release:
+For a package release:
 
 1. Bump the package version in the corresponding `.fsproj` or `.csproj`.
 2. Update that project's `RELEASE_NOTES.md`.
-3. Merge to `main`; CI publishes eligible packages to NuGet.
+3. Run the focused and solution-level checks described in
+   [testing changes](testing.md).
+4. Push the reviewed commit, then manually dispatch its package-specific
+   release workflow from GitHub Actions. Model and Codecs publish the same
+   build to NuGet, npm, and PyPI; Client and Interop publish to NuGet.
 
 ## Registry service with Docker Compose
 

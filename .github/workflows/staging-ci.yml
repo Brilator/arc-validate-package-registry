@@ -1,0 +1,54 @@
+name: "Staging CI"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - StagingArea/**
+      - StagingAreaTests/**
+      - PackageStagingArea.sln
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - src/AVPR.Staging/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - .config/dotnet-tools.json
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/staging-ci.yml
+      - .github/workflows/run-build-target.yml
+  push:
+    branches: [main, dev]
+    paths:
+      - StagingArea/**
+      - StagingAreaTests/**
+      - PackageStagingArea.sln
+      - src/ValidationPackage.Model/**
+      - src/ValidationPackage.Codecs/**
+      - src/AVPR.Staging/**
+      - build/**
+      - build.cmd
+      - build.sh
+      - .config/dotnet-tools.json
+      - package.json
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/staging-ci.yml
+      - .github/workflows/run-build-target.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Test staging area"
+    uses: ./.github/workflows/run-build-target.yml
+    with:
+      target: TestStagingArea
+      install-uv: true
+      windows: true
+      ubuntu: false
+      macos: false

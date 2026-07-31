@@ -19,7 +19,8 @@ The repository contains:
 - `src/AVPRCI/`: publication tooling;
 - `src/PackageRegistryService/`: the registry API and package-browser website;
 - `build/`: the cross-platform build project used by local development and CI;
-- `tests/` and `StagingAreaTests/`: library, API, contract, and package checks.
+- `tests/` and `StagingAreaTests/`: library, API, contract, and package checks;
+- `.github/workflows/`: focused core/package, staging, service-image, and release automation.
 
 The production package browser and API are available at
 [avpr.nfdi4plants.org](https://avpr.nfdi4plants.org).
@@ -73,6 +74,51 @@ Pack all NuGet, npm, and Python candidate artifacts together with:
 ```shell
 ./build.sh PackCandidatePackages
 ```
+
+## CI/CD workflow map
+
+Automation is split by responsibility. Core, portable, staging, and service
+checks use path-focused workflows, while each publishable package has an
+explicit manual release workflow.
+
+```mermaid
+flowchart TD
+    Changes["Push or pull request<br/>to main or dev"]
+    Manual["Manual release dispatch"]
+
+    Changes --> CoreCI["ci.yml<br/>core libraries and clients"]
+    Changes --> PortableCI["portable-ci.yml<br/>Model and Codecs"]
+    Changes --> Staging["staging-ci.yml<br/>staging and checker changes"]
+    Changes --> Service["service-image.yml<br/>registry-service changes"]
+
+    CoreCI --> Core["TestSolution<br/>Windows, Linux, macOS"]
+    Core --> Downstream["Pinned arc-validate<br/>candidate compatibility"]
+    PortableCI --> Portable["Portable contracts<br/>.NET, JavaScript, Python"]
+
+    Staging --> StagingTests["TestStagingArea<br/>Windows with uv"]
+
+    Service --> ServiceTests["TestSolution<br/>Windows, Linux, macOS"]
+    ServiceTests --> ServiceDownstream["Pinned arc-validate<br/>candidate compatibility"]
+    ServiceDownstream --> Image["GHCR service image<br/>main or dev push"]
+
+    Manual --> ModelRelease["release-model.yml<br/>build Model once"]
+    Manual --> CodecsRelease["release-codecs.yml<br/>build Codecs once"]
+    Manual --> ClientRelease["release-client.yml<br/>or release-client-interop.yml"]
+
+    ModelRelease --> NuGet["NuGet"]
+    ModelRelease --> Npm["npm"]
+    ModelRelease --> PyPI["PyPI"]
+    CodecsRelease --> NuGet
+    CodecsRelease --> Npm
+    CodecsRelease --> PyPI
+    ClientRelease --> NuGetPublisher["release-package.yml"]
+    NuGetPublisher --> NuGet
+```
+
+Publication jobs use the protected `release` environment and OIDC trusted
+publishing. Model and Codecs each pack once and publish the resulting artifacts
+to all three registries. Registry policies must authorize the exact workflow
+filename that performs each publish job.
 
 Before publishing a client, model, or codec change, AVPR CI checks out the
 explicitly pinned `arc-validate` commit and runs its `TestAVPRCandidate` target

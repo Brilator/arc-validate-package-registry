@@ -19,8 +19,16 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `src/PackageRegistryService/`: ASP.NET Core registry API, website, database model, and migrations.
 - `tests/`: tests for the portable model/codecs, staging infrastructure, client interop, and API.
 - `build/`: FAKE/BlackFox build project containing local and CI build, test, and pack targets.
-- `.github/workflows/pipeline.yml`: change detection and orchestration for tests and releases.
+- `.github/workflows/ci.yml`: path-focused main solution tests and downstream compatibility for core libraries and clients.
+- `.github/workflows/portable-ci.yml`: cross-target Model and Codecs contract and packed-consumer tests.
+- `.github/workflows/staging-ci.yml`: path-focused Windows staging checks with `uv`.
+- `.github/workflows/service-image.yml`: service tests, downstream compatibility, and `main`/`dev` container publication.
+- `.github/workflows/release-model.yml` and `release-codecs.yml`: package-oriented, manually dispatched NuGet/npm/PyPI trusted publication.
+- `.github/workflows/release-client.yml` and `release-client-interop.yml`: manually dispatched client gates and NuGet publication.
+- `.github/workflows/release-package.yml`: reusable NuGet trusted-publishing job used only by the client release workflows.
+- `.github/workflows/verify-release.yml`: reusable core/portable/downstream release gate; it never publishes.
 - `.github/workflows/run-build-target.yml`: reusable cross-platform build-target runner.
+- `.github/actions/setup-portable/`: composite portable pack-toolchain setup; composite actions retain the caller workflow identity used by trusted publishing.
 
 ## Toolchain and common commands
 
@@ -197,11 +205,16 @@ When adding tests:
 
 ## CI and release safety
 
-- Changes under `StagingArea/**` trigger the staging solution on Windows with `uv` installed.
-- Changes under `tests/**` or the main `src` projects can trigger the main solution build/test job.
-- On pushes to `main`, release-note changes can publish NuGet packages and service changes can publish the production container image (`ghcr.io/nfdi4plants/avpr:main`).
-- `dev` is a long-lived integration branch: pushes there publish a separate `ghcr.io/nfdi4plants/avpr:dev` image for the development instance, but NuGet releases and production package publication are gated to `main` only.
-- NuGet releases use trusted publishing through the `release` GitHub environment. The publish job needs `id-token: write` and exchanges OIDC through `NuGet/login`; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy.
+- `ci.yml` owns path-focused main solution tests and downstream compatibility for core libraries and clients. There is no central change-detection job or release-note-triggered package publication.
+- `portable-ci.yml` owns cross-target Model and Codecs tests. It runs both portable targets when either portable implementation, consumer test, or shared build tool changes.
+- `staging-ci.yml` owns `StagingArea/**`, staging-checker, staging-model/codec, and relevant build-tool changes. It runs `TestStagingArea` on Windows with `uv` installed.
+- `service-image.yml` owns the service project, its local project references, bundled `StagingArea`/documentation content, and Docker build inputs. It runs `TestSolution` across Windows, Linux, and macOS plus downstream compatibility before publishing an image on a branch push. Pull requests and the default manual dry run never publish.
+- `dev` is a long-lived integration branch whose service changes publish `ghcr.io/nfdi4plants/avpr:dev`; `main` service changes publish `ghcr.io/nfdi4plants/avpr:main`. Package publication is never triggered by a branch push.
+- `release-model.yml` and `release-codecs.yml` each rerun core, portable, and downstream gates, pack once, and publish the same revision to NuGet, npm, and PyPI from a protected `release` environment. Release Model before Codecs when both versions change.
+- Model and Codecs NuGet trusted-publisher policies must name their direct workflow (`release-model.yml` or `release-codecs.yml`). Client and Interop policies must name the called reusable workflow `release-package.yml`, which NuGet observes through `job_workflow_ref`.
+- npm trusted-publisher policies for the scoped Model and Codecs packages must name the corresponding direct package workflow and allow `npm publish`. These workflows use Node 24, npm with trusted-publishing support, and no npm token.
+- PyPI trusted-publisher policies for Model and Codecs must name the corresponding direct, top-level package workflow. Do not move PyPI publishing into a reusable workflow.
+- All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy.
 - A staged package marked for publication can be pushed to the production registry after checks pass.
 - Workflow actions should remain pinned to deliberate versions/commits. Preserve least-privilege permissions and never print secrets.
 
