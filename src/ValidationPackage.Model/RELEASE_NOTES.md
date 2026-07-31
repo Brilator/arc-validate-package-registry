@@ -4,3 +4,4 @@
 - Add CWL scalar command-input types and behavior.
 - Add semantic-version and package-identity behavior.
 - Include Fable sources for .NET, JavaScript, and Python consumers.
+- Build installable npm and Python packages alongside the NuGet package.

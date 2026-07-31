@@ -1,0 +1,26 @@
+{
+  "name": "validationpackage-codecs",
+  "version": "0.0.0",
+  "description": "Portable YAML frontmatter and JSON codecs for ARC validation packages.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nfdi4plants/arc-validate-package-registry.git"
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./*": "./*"
+  },
+  "dependencies": {
+    "validationpackage-model": "0.0.0"
+  },
+  "files": [
+    "*.js",
+    "Json/**/*.js",
+    "Yaml/**/*.js",
+    "fable_modules/**/*.js",
+    "fable_modules/**/package.json"
+  ]
+}

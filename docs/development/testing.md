@@ -22,6 +22,7 @@ handoff.
 # Portable .NET/JavaScript/Python contracts and packed-package consumers
 ./build.sh TestPortableModel
 ./build.sh TestPortableCodecs
+./build.sh TestNativeValidationPackages
 
 # Focused suites
 dotnet test tests/AVPR.Staging.Tests/AVPR.Staging.Tests.fsproj --configuration Release
@@ -42,8 +43,9 @@ with `dotnet run` rather than `dotnet test`.
 Run `./build.sh TestPortableModel` for the model and
 `./build.sh TestPortableCodecs` for the codecs. Each target restores the pinned
 tools and uv environment, runs the shared contract on .NET, JavaScript, and
-Python, packs the NuGet package, and runs consumers restored from the local
-package rather than project references.
+Python, packs the NuGet, npm, and Python artifacts, and runs consumers restored
+from local packages rather than project references. `TestNativeValidationPackages`
+is the focused installed-consumer check for the npm tarballs and Python wheels.
 
 Generated output belongs under ignored `artifacts/portable/`. After changing a
 public portable type, inspect that output for attached class members, clean

@@ -1,0 +1,21 @@
+{
+  "name": "validationpackage-model",
+  "version": "0.0.0",
+  "description": "Portable metadata and CWL input model for ARC validation packages.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nfdi4plants/arc-validate-package-registry.git"
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./*": "./*"
+  },
+  "files": [
+    "*.js",
+    "fable_modules/**/*.js",
+    "fable_modules/**/package.json"
+  ]
+}

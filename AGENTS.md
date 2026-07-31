@@ -36,8 +36,9 @@ The pinned SDK is in `global.json` (currently .NET 10). Python package execution
 # Portable model/codecs across .NET, JavaScript, and Python, including packed consumers
 .\build.cmd TestPortableModel
 .\build.cmd TestPortableCodecs
+.\build.cmd TestNativeValidationPackages
 
-# Produce one release artifact under artifacts/packages
+# Produce NuGet/npm/Python artifacts under artifacts/packages
 .\build.cmd PackModel
 .\build.cmd PackCodecs
 .\build.cmd PackClient
@@ -123,6 +124,9 @@ Python. Treat transpiled API shape and behavior as part of its public contract.
   functions, `@`-suffixed fields, mangled names, and target-only failures.
 - Keep F# source order explicit in every portable `.fsproj`. Pack the project
   and ordered `.fs`/`.fsi` sources under the NuGet package's `fable/` path.
+- `PackModel` and `PackCodecs` each produce a NuGet package, an npm tarball,
+  and a Python wheel. Native Codecs artifacts must depend on the corresponding
+  native Model artifact and must not bundle a private generated Model copy.
 
 Portable contract tests use only `Fable.Pyxpecto` as their test framework. They
 are a regular executable, not a VSTest project:

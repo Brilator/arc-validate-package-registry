@@ -86,5 +86,64 @@ let testCodecsPackage =
         runUv [ "run"; "--locked"; "python"; Path.Combine(pythonOutput, "program.py") ] "."
     }
 
+let private exactlyOneArtifact pattern =
+    match Directory.GetFiles(Path.GetFullPath packageDir, pattern) with
+    | [| artifact |] -> artifact
+    | artifacts ->
+        failwithf "Expected one %s artifact, found %i" pattern artifacts.Length
+
+let testNativeValidationPackages =
+    BuildTask.create "TestNativeValidationPackages" [ packPortablePackages ] {
+        let sourceDirectory = Path.Combine("tests", "ValidationPackage.NativePackageSmoke")
+
+        let javaScriptDirectory = Path.Combine(codecsPackageSmokeDir, "native-javascript")
+        recreateDirectory javaScriptDirectory
+        File.WriteAllText(
+            Path.Combine(javaScriptDirectory, "package.json"),
+            "{\"private\":true,\"type\":\"module\"}"
+        )
+        File.Copy(
+            Path.Combine(sourceDirectory, "javascript.mjs"),
+            Path.Combine(javaScriptDirectory, "javascript.mjs"),
+            true
+        )
+        runNpm
+            [
+                "install"
+                exactlyOneArtifact "validationpackage-model-*.tgz"
+                exactlyOneArtifact "validationpackage-codecs-*.tgz"
+                "--no-audit"
+                "--no-fund"
+            ]
+            javaScriptDirectory
+        runCommand "node" [ "javascript.mjs" ] javaScriptDirectory
+
+        let pythonDirectory = Path.Combine(codecsPackageSmokeDir, "native-python")
+        let virtualEnvironment = Path.Combine(pythonDirectory, ".venv")
+        recreateDirectory pythonDirectory
+        File.Copy(
+            Path.Combine(sourceDirectory, "python.py"),
+            Path.Combine(pythonDirectory, "python.py"),
+            true
+        )
+        runUv [ "venv"; virtualEnvironment ] "."
+        let python =
+            if System.OperatingSystem.IsWindows() then
+                Path.Combine(virtualEnvironment, "Scripts", "python.exe")
+            else
+                Path.Combine(virtualEnvironment, "bin", "python")
+        runUv
+            [
+                "pip"
+                "install"
+                "--python"
+                python
+                exactlyOneArtifact "validationpackage_model-*.whl"
+                exactlyOneArtifact "validationpackage_codecs-*.whl"
+            ]
+            "."
+        runCommand python [ "python.py" ] pythonDirectory
+    }
+
 let testPortableCodecs =
-    BuildTask.createEmpty "TestPortableCodecs" [ testCodecsPackage ]
+    BuildTask.createEmpty "TestPortableCodecs" [ testCodecsPackage; testNativeValidationPackages ]
