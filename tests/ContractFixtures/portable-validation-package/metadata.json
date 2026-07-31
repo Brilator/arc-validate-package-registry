@@ -1,0 +1,53 @@
+{
+  "name": "canonical-contract",
+  "summary": "Canonical portable contract",
+  "description": "Exercises every public metadata and CWL boundary.",
+  "majorVersion": 1,
+  "minorVersion": 2,
+  "patchVersion": 3,
+  "preReleaseVersionSuffix": "rc.1",
+  "buildMetadataVersionSuffix": "build.7",
+  "programmingLanguage": "FSharp",
+  "publish": false,
+  "authors": [
+    {
+      "fullName": "Ada Example",
+      "email": "ada@example.org",
+      "affiliation": "DataPLANT",
+      "affiliationLink": "https://nfdi4plants.org"
+    }
+  ],
+  "tags": [
+    {
+      "name": "validation",
+      "termSourceREF": "AVPR",
+      "termAccessionNumber": "AVPR:validation"
+    }
+  ],
+  "releaseNotes": "Canonical cross-repository contract.",
+  "cqcHookEndpoint": "https://example.org/hooks/cqc",
+  "Inputs": [
+    {
+      "id": "arc-directory",
+      "type": "string",
+      "label": "ARC directory",
+      "doc": "Path to the ARC.",
+      "inputBinding": {
+        "position": 1,
+        "prefix": "--arc-directory",
+        "separate": true
+      }
+    },
+    {
+      "id": "verbose",
+      "type": "boolean?",
+      "label": "Verbose output",
+      "doc": "Enable detailed output.",
+      "inputBinding": {
+        "position": 2,
+        "prefix": "--verbose",
+        "separate": false
+      }
+    }
+  ]
+}

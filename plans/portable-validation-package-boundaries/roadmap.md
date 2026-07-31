@@ -2,12 +2,11 @@
 
 ## Status and planning policy
 
-**Status:** implementation underway. Milestones 1–3 and the arc-validate work
-in Milestones 4–5 are complete. The AVPR portable boundaries, native
-Model/Codecs artifacts, and ARCExpect's shared .NET/JavaScript/Python authoring
-and execution API are implemented. The remaining roadmap checkpoint is AVPR
-#115: canonical contract fixtures and downstream arc-validate verification
-against explicit AVPR candidate artifacts.
+**Status:** implementation complete. All five milestones are implemented. AVPR
+owns canonical cross-boundary fixtures, builds explicit NuGet/npm/Python
+candidate artifacts, and gates release paths on the pinned arc-validate
+consumer suite. ARCExpect exposes its shared authoring and execution API from
+.NET, JavaScript, and Python using target-native model and codec dependencies.
 
 GitHub tracking:
 
@@ -295,9 +294,9 @@ Outcome:
   release.
 - ARCExpect has one public identity, three target builds, and no public
   `Core`, `Portable`, or target-suffixed namespace.
-- ARCExpect's shared authoring and execution boundary is implemented; the
-  remaining Milestone 4 work is AVPR #115's contract-fixture and candidate-CI
-  enforcement.
+- ARCExpect's shared authoring and execution boundary is implemented, and AVPR
+  #115 enforces its model, codec, client, interop, API JSON, frontmatter, SemVer,
+  and CWL compatibility before release.
 
 ### Milestone 5 — Provide portable Pyxpecto execution
 
@@ -437,3 +436,6 @@ The epic is complete when:
 - ARCExpect exposes `Setup`, `ARCValidationPackage`, and `Execute` from its
   .NET, JavaScript, and Python packages, using target-native model and codec
   dependencies.
+
+All completion criteria above are satisfied by the tracked AVPR and
+arc-validate issue set.

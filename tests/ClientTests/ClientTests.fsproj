@@ -9,10 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="../ContractFixtures/**" Link="contract-fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="ReferenceObjects.fs" />
     <Compile Include="TypeExtensionsTests.fs" />
     <Compile Include="ClientContractTests.fs" />
+    <Compile Include="ContractFixtureTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -33,6 +38,8 @@
     <ProjectReference Include="..\..\src\AVPRClient\AVPRClient.csproj" />
     <ProjectReference Include="..\..\src\AVPRClient.Interop\AVPRClient.Interop.csproj" />
     <ProjectReference Include="..\..\src\ValidationPackage.Model\ValidationPackage.Model.fsproj" />
+    <ProjectReference Include="../../src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj" />
+    <ProjectReference Include="../../src/AVPR.Staging/AVPR.Staging.fsproj" />
     <ProjectReference Include="..\PackageRegistryTestHost\PackageRegistryTestHost.csproj" />
   </ItemGroup>
 

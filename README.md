@@ -68,6 +68,20 @@ Run the portable codec suite on all three targets with:
 ./build.sh TestPortableCodecs
 ```
 
+Pack all NuGet, npm, and Python candidate artifacts together with:
+
+```shell
+./build.sh PackCandidatePackages
+```
+
+Before publishing a client, model, or codec change, AVPR CI checks out the
+explicitly pinned `arc-validate` commit and runs its `TestAVPRCandidate` target
+against these local artifacts. To reproduce that cross-repository gate, set
+`AVPR_CANDIDATE_PACKAGE_DIR` to this repository's `artifacts/packages`
+directory, then run `./build.sh TestAVPRCandidate` from the pinned
+`arc-validate` checkout. Update the CI pin deliberately when the downstream
+compatibility implementation changes.
+
 On Windows, replace `./build.sh` with `.\build.cmd`.
 
 With Docker Desktop running, start the registry service, PostgreSQL, and Adminer

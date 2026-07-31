@@ -13,6 +13,7 @@ let _testStagingArea = testStagingArea
 let _packClient = packClient
 let _packClientInterop = packClientInterop
 let _packClientPackages = packClientPackages
+let _packCandidatePackages = packCandidatePackages
 let _testPortableModel = testPortableModel
 let _testPortableCodecs = testPortableCodecs
 

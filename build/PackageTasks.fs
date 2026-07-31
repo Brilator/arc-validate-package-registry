@@ -233,3 +233,8 @@ let packClientPackages =
 
 let packPortablePackages =
     BuildTask.createEmpty "PackPortablePackages" [ packModel; packCodecs ]
+
+let packCandidatePackages =
+    BuildTask.createEmpty
+        "PackCandidatePackages"
+        [ packClient; packClientInterop; packModel; packCodecs ]
