@@ -21,7 +21,6 @@ on:
       - uv.lock
       - .github/workflows/ci.yml
       - .github/workflows/run-build-target.yml
-      - .github/workflows/downstream-compatibility.yml
       - .github/workflows/release-package.yml
       - .github/workflows/release-client.yml
       - .github/workflows/release-client-interop.yml
@@ -49,7 +48,6 @@ on:
       - uv.lock
       - .github/workflows/ci.yml
       - .github/workflows/run-build-target.yml
-      - .github/workflows/downstream-compatibility.yml
       - .github/workflows/release-package.yml
       - .github/workflows/release-client.yml
       - .github/workflows/release-client-interop.yml
@@ -71,10 +69,3 @@ jobs:
       windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
       ubuntu: true
       macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
-
-  downstream-compatibility:
-    name: "Test pinned arc-validate against AVPR candidates"
-    needs: test
-    uses: ./.github/workflows/downstream-compatibility.yml
-    with:
-      arc-validate-ref: 2df6520a5ae927cff69cf917a6b511b175516753

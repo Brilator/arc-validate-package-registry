@@ -29,10 +29,3 @@ jobs:
       install-node: true
       install-python: true
       install-uv: true
-
-  downstream-compatibility:
-    name: "Test pinned arc-validate against AVPR candidates"
-    needs: test-core
-    uses: ./.github/workflows/downstream-compatibility.yml
-    with:
-      arc-validate-ref: 2df6520a5ae927cff69cf917a6b511b175516753

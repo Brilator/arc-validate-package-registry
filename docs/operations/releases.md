@@ -15,12 +15,12 @@
 GitHub Actions automation runs for pushes and pull requests targeting `main`
 or `dev`, split by responsibility:
 
-- `ci.yml` runs path-focused main solution tests and downstream compatibility;
+- `ci.yml` runs path-focused main solution tests;
 - `portable-ci.yml` runs Model and Codecs contract suites on .NET, JavaScript,
   and Python, including packed consumers;
 - `staging-ci.yml` runs staging-area syntax and metadata checks on Windows;
 - `service-image.yml` gates registry-service container publication on the main
-  solution and downstream compatibility;
+  solution;
 - package-specific manual workflows rerun their required gates before entering
   the protected publishing environment.
 
@@ -101,14 +101,14 @@ For every library package:
 4. Manually dispatch that package's release workflow against the intended ref.
 5. Approve the protected `release` environment when configured to require it.
 
-Release workflows rerun their required tests and downstream compatibility
-before publishing. No `RELEASE_NOTES.md` change or branch push publishes a
-library package automatically.
+Release workflows rerun their required tests before publishing. No
+`RELEASE_NOTES.md` change or branch push publishes a library package
+automatically.
 
 ### Portable package releases
 
-`release-model.yml` and `release-codecs.yml` each run the core, portable, and
-downstream gates, then call `PackModel` or `PackCodecs` exactly once. That one
+`release-model.yml` and `release-codecs.yml` each run the core and portable
+gates, then call `PackModel` or `PackCodecs` exactly once. That one
 build produces the NuGet package, npm tarball, and Python wheel published by the
 same job. Release Model before Codecs when both versions change because Codecs
 depends on Model in all three ecosystems.
@@ -123,9 +123,9 @@ imports use `validation_package_model` and `validation_package_codecs`.
 
 ### Client package releases
 
-`release-client.yml` and `release-client-interop.yml` rerun `TestSolution` and
-downstream compatibility, then call the reusable `release-package.yml` NuGet
-publisher with `PackClient` or `PackClientInterop`. Interop remains independently
+`release-client.yml` and `release-client-interop.yml` rerun `TestSolution`,
+then call the reusable `release-package.yml` NuGet publisher with `PackClient`
+or `PackClientInterop`. Interop remains independently
 versioned so consumers can opt into portable model conversion.
 
 ### Trusted-publisher configuration

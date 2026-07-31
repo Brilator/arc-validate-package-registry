@@ -92,14 +92,12 @@ flowchart TD
     Changes --> Service["service-image.yml<br/>registry-service changes"]
 
     CoreCI --> Core["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
-    Core --> Downstream["Pinned arc-validate<br/>candidate compatibility"]
     PortableCI --> Portable["Portable contracts<br/>.NET, JavaScript, Python"]
 
     Staging --> StagingTests["TestStagingArea<br/>Windows with uv"]
 
     Service --> ServiceTests["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
-    ServiceTests --> ServiceDownstream["Pinned arc-validate<br/>candidate compatibility"]
-    ServiceDownstream --> Image["GHCR service image<br/>main or dev push"]
+    ServiceTests --> Image["GHCR service image<br/>main or dev push"]
 
     Manual --> ModelRelease["release-model.yml<br/>build Model once"]
     Manual --> CodecsRelease["release-codecs.yml<br/>build Codecs once"]
@@ -119,14 +117,6 @@ Publication jobs use the protected `release` environment and OIDC trusted
 publishing. Model and Codecs each pack once and publish the resulting artifacts
 to all three registries. Registry policies must authorize the exact workflow
 filename that performs each publish job.
-
-Before publishing a client, model, or codec change, AVPR CI checks out the
-explicitly pinned `arc-validate` commit and runs its `TestAVPRCandidate` target
-against these local artifacts. To reproduce that cross-repository gate, set
-`AVPR_CANDIDATE_PACKAGE_DIR` to this repository's `artifacts/packages`
-directory, then run `./build.sh TestAVPRCandidate` from the pinned
-`arc-validate` checkout. Update the CI pin deliberately when the downstream
-compatibility implementation changes.
 
 On Windows, replace `./build.sh` with `.\build.cmd`.
 
