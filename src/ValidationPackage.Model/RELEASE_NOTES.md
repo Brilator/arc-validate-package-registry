@@ -1,4 +1,4 @@
-## v0.1.0
+## v0.1.0-preview.2
 
 - Add the portable validation-package metadata domain.
 - Add CWL scalar command-input types and behavior.
