@@ -51,7 +51,6 @@ The pinned SDK is in `global.json` (currently .NET 10). Python package execution
 .\build.cmd PackCodecs
 .\build.cmd PackClient
 .\build.cmd PackClientInterop
-.\build.cmd PackCandidatePackages
 
 # Focused test projects
 dotnet test tests/AVPR.Staging.Tests/AVPR.Staging.Tests.fsproj

@@ -69,12 +69,6 @@ Run the portable codec suite on all three targets with:
 ./build.sh TestPortableCodecs
 ```
 
-Pack all NuGet, npm, and Python candidate artifacts together with:
-
-```shell
-./build.sh PackCandidatePackages
-```
-
 ## CI/CD workflow map
 
 Automation is split by responsibility. Core, portable, staging, and service
