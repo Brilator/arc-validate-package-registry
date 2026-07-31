@@ -26,7 +26,7 @@
     {RenderNavbarItem(active, "Documentation", "/docs")}
     {RenderNavbarItem(active, "Releases", "/releases")}
     {RenderNavbarItem(active, "About", "/docs/index.md#about-avpr")}
-    <li><a href=""https://github.com/nfdi4plants/arc-validate-package-registry/blob/main/docs/packages/submission.md"">Submit a package</a></li>
+    <li><a href=""https://github.com/nfdi4plants/arc-validate-package-registry/blob/dev/docs/packages/submission.md"">Submit a package</a></li>
   </ul>
 </nav>";
         }

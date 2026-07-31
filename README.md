@@ -77,7 +77,7 @@ explicit manual release workflow.
 
 ```mermaid
 flowchart TD
-    Changes["Push or pull request<br/>to main or dev"]
+    Changes["Push or pull request<br/>to release or dev"]
     Manual["Manual release dispatch"]
 
     Changes --> CoreCI["ci.yml<br/>core libraries and clients"]
@@ -85,13 +85,13 @@ flowchart TD
     Changes --> Staging["staging-ci.yml<br/>staging and checker changes"]
     Changes --> Service["service-image.yml<br/>registry-service changes"]
 
-    CoreCI --> Core["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
+    CoreCI --> Core["TestSolution<br/>Ubuntu; all OSes for release push/PR"]
     PortableCI --> Portable["Portable contracts<br/>.NET, JavaScript, Python"]
 
     Staging --> StagingTests["TestStagingArea<br/>Windows with uv"]
 
-    Service --> ServiceTests["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
-    ServiceTests --> Image["GHCR service image<br/>main or dev push"]
+    Service --> ServiceTests["TestSolution<br/>Ubuntu; all OSes for release push/PR"]
+    ServiceTests --> Image["GHCR service image<br/>release or dev push"]
 
     Manual --> ModelRelease["release-model.yml<br/>build Model once"]
     Manual --> CodecsRelease["release-codecs.yml<br/>build Codecs once"]

@@ -31,7 +31,7 @@ namespace PackageRegistryService.Pages.Components
         {RenderFooterItem(active, "Documentation", "/docs")}
         {RenderFooterItem(active, "Releases", "/releases")}
         {RenderFooterItem(active, "About", "/docs/index.md#about-avpr")}
-        {RenderFooterItem(active, "Submit a package", "https://github.com/nfdi4plants/arc-validate-package-registry/blob/main/docs/packages/submission.md")}
+        {RenderFooterItem(active, "Submit a package", "https://github.com/nfdi4plants/arc-validate-package-registry/blob/dev/docs/packages/submission.md")}
       </ul>
     </div>
   </div>

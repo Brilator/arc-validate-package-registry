@@ -12,7 +12,7 @@
   - [AVPRIndex retirement](#avprindex-retirement)
 - [Publishing validation packages](#publishing-validation-packages)
 
-GitHub Actions automation runs for pushes and pull requests targeting `main`
+GitHub Actions automation runs for pushes and pull requests targeting `release`
 or `dev`, split by responsibility:
 
 - `ci.yml` runs path-focused main solution tests;
@@ -25,7 +25,7 @@ or `dev`, split by responsibility:
   the protected publishing environment.
 
 Routine `dev`, manual, and package-release verification runs the main solution
-on Ubuntu. Pushes to `main` and pull requests targeting `main` add Windows and
+on Ubuntu. Pushes to `release` and pull requests targeting `release` add Windows and
 macOS, providing a cross-platform gate without multiplying every development
 build.
 
@@ -34,17 +34,17 @@ Workflow actions, permissions, and release branches are defined under
 
 ## Branch roles
 
-- `dev` is the long-lived integration branch. Service changes publish the
+- `dev` is the default, long-lived integration branch. Service changes publish the
   `ghcr.io/nfdi4plants/avpr:dev` image for the development instance.
-- `main` is the production branch. Service changes publish
-  `ghcr.io/nfdi4plants/avpr:main`.
+- `release` is the production branch. Service changes publish
+  `ghcr.io/nfdi4plants/avpr:release`.
 
 No branch push publishes library packages. Package releases are explicit
 manual workflow dispatches from a reviewed repository revision and enter the
 protected `release` environment before publication.
 
 Each service build also publishes an immutable `sha-<short-sha>` tag. Prefer the
-SHA tag for manual deployment; `main` and `dev` are convenient moving aliases.
+SHA tag for manual deployment; `release` and `dev` are convenient moving aliases.
 
 ## Service versions and release notes
 
@@ -86,7 +86,7 @@ A service image built from the `dev` branch is the one exception for a new
 development instance. When its configured database contains no tables, startup
 applies the bundled migrations and seeds packages from `StagingArea`. If any
 table already exists, startup does not migrate or seed the database. Images
-built from `main`, `local`, or any other channel never use this deployed-dev
+built from `release`, `local`, or any other channel never use this deployed-dev
 initialization path.
 
 ## Package releases

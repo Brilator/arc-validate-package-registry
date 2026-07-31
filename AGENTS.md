@@ -22,7 +22,7 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `.github/workflows/ci.yml`: path-focused main solution tests for core libraries and clients.
 - `.github/workflows/portable-ci.yml`: cross-target Model and Codecs contract and packed-consumer tests.
 - `.github/workflows/staging-ci.yml`: path-focused Windows staging checks with `uv`.
-- `.github/workflows/service-image.yml`: service tests and `main`/`dev` container publication.
+- `.github/workflows/service-image.yml`: service tests and `release`/`dev` container publication.
 - `.github/workflows/release-model.yml` and `release-codecs.yml`: package-oriented, manually dispatched NuGet/npm/PyPI trusted publication.
 - `.github/workflows/release-client.yml` and `release-client-interop.yml`: manually dispatched client gates and NuGet publication.
 - `.github/workflows/release-package.yml`: reusable NuGet trusted-publishing job used only by the client release workflows.
@@ -207,9 +207,9 @@ When adding tests:
 - `ci.yml` owns path-focused main solution tests for core libraries and clients. Downstream package compatibility belongs to the downstream repository's normal CI and release process; AVPR workflows must not clone and rebuild `arc-validate`.
 - `portable-ci.yml` owns cross-target Model and Codecs tests. It runs both portable targets when either portable implementation, consumer test, or shared build tool changes.
 - `staging-ci.yml` owns `StagingArea/**`, staging-checker, staging-model/codec, and relevant build-tool changes. It runs `TestStagingArea` on Windows with `uv` installed.
-- Routine `dev`, manual, and package-release verification runs `TestSolution` on Ubuntu. Pushes to `main` and pull requests targeting `main` additionally run it on Windows and macOS; this is the repository's cross-platform gate.
+- Routine `dev`, manual, and package-release verification runs `TestSolution` on Ubuntu. Pushes to `release` and pull requests targeting `release` additionally run it on Windows and macOS; this is the repository's cross-platform gate.
 - `service-image.yml` owns the service project, its local project references, bundled `StagingArea`/documentation content, and Docker build inputs. It runs the applicable `TestSolution` gate before publishing an image on a branch push. Pull requests and the default manual dry run never publish.
-- `dev` is a long-lived integration branch whose service changes publish `ghcr.io/nfdi4plants/avpr:dev`; `main` service changes publish `ghcr.io/nfdi4plants/avpr:main`. Package publication is never triggered by a branch push.
+- `dev` is the default, long-lived integration branch whose service changes publish `ghcr.io/nfdi4plants/avpr:dev`; `release` is the production branch and publishes `ghcr.io/nfdi4plants/avpr:release`. Package publication is never triggered by a branch push.
 - `release-model.yml` and `release-codecs.yml` each rerun core and portable gates, pack once, and publish the same revision to NuGet, npm, and PyPI from a protected `release` environment. Release Model before Codecs when both versions change.
 - Model and Codecs NuGet trusted-publisher policies must name their direct workflow (`release-model.yml` or `release-codecs.yml`). Client and Interop policies must name the called reusable workflow `release-package.yml`, which NuGet observes through `job_workflow_ref`.
 - npm trusted-publisher policies for the scoped Model and Codecs packages must name the corresponding direct package workflow and allow `npm publish`. These workflows use Node 24, npm with trusted-publishing support, and no npm token.

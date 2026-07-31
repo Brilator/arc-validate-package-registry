@@ -8,7 +8,7 @@ This change introduces an **optional** `CLIArguments` section in the YAML frontm
 
 The field is modeled exactly like the existing owned-JSON collections `Tags` and `Authors` (see [`ValidationPackageDb.cs`](src/PackageRegistryService/Models/ValidationPackageDb.cs) `OwnsMany(...).ToJson()`), which keeps the migration trivial and the code idiomatic.
 
-Separately, we set up a **dev instance**: a new `dev` branch whose pushes publish a distinctly tagged `ghcr.io/nfdi4plants/avpr:dev` image (production keeps `:main`), documented in the repo. Actual dev-server deployment is handled outside this repo (**docs-only** here).
+Separately, we set up a **dev instance**: a new `dev` branch whose pushes publish a distinctly tagged `ghcr.io/nfdi4plants/avpr:dev` image (production keeps `:release`), documented in the repo. Actual dev-server deployment is handled outside this repo (**docs-only** here).
 
 `arc-validate` is a downstream consumer of the `AVPRIndex`/`AVPRClient` NuGet packages and must be adapted too — **that implementation is intentionally omitted here** and will be drafted in that repo from a copy of this plan (see "Downstream" section).
 
@@ -31,7 +31,7 @@ Separately, we set up a **dev instance**: a new `dev` branch whose pushes publis
 - YAML deserialization is automatic (YamlDotNet PascalCase → `CLIArguments` key with `Flags`/`Description`/`Example`, `Flags` a YAML string sequence), no code change required for parsing.
 - **Hardening for forward-compat:** in `yamlDeserializer()` (line ~123) add `.IgnoreUnmatchedProperties()` so frontmatter containing keys unknown to an older reader does not throw. This makes `CLIArguments` — and future additions — non-breaking for already-shipped consumers. Confirm current strict/lenient behavior with a quick unit test (parse frontmatter with an unknown key).
 
-**Release:** bump [`src/AVPRIndex/RELEASE_NOTES.md`](src/AVPRIndex/RELEASE_NOTES.md) (new top entry, e.g. `v0.5.0 - Add optional CLIArguments metadata`) and the version in [`AVPRIndex.fsproj`](src/AVPRIndex/AVPRIndex.fsproj). A `RELEASE_NOTES.md` change on `main` triggers the NuGet publish (see [`pipeline.yml`](.github/workflows/pipeline.yml) `trigger-release-index`).
+**Release:** bump [`src/AVPRIndex/RELEASE_NOTES.md`](src/AVPRIndex/RELEASE_NOTES.md) (new top entry, e.g. `v0.5.0 - Add optional CLIArguments metadata`) and the version in [`AVPRIndex.fsproj`](src/AVPRIndex/AVPRIndex.fsproj). A `RELEASE_NOTES.md` change on `release` triggers the NuGet publish (see [`pipeline.yml`](.github/workflows/pipeline.yml) `trigger-release-index`).
 
 ---
 
@@ -109,10 +109,10 @@ Null-handling elsewhere follows the existing `?? []` convention (Layer 3).
 ## Layer 6 — Dev instance (pipeline + docs only)
 
 **File: [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml)**
-- Add `dev` to `on.push.branches` (line ~5) and `on.pull_request.branches` (line ~15) → `['main', 'dev']`.
-- Gate the **NuGet** releases to `main` only so a `dev` push never publishes libraries: add `github.ref == 'refs/heads/main' &&` to `trigger-release-index` and `trigger-release-client` (lines ~91-92).
-- Leave `release-api-image` triggering on any qualifying push. `docker/metadata-action` (no explicit `tags:`) already tags by branch name via `type=ref,event=branch`, so `main` → `:main` and `dev` → `:dev` automatically — production tagging is unchanged. (Optional: make tags explicit with a `tags:` block if we later want `:latest` on `main`.)
-- Reusable-workflow refs stay `@main` (stable).
+- Add `dev` to `on.push.branches` (line ~5) and `on.pull_request.branches` (line ~15) → `['release', 'dev']`.
+- Gate the **NuGet** releases to `release` only so a `dev` push never publishes libraries: add `github.ref == 'refs/heads/release' &&` to `trigger-release-index` and `trigger-release-client` (lines ~91-92).
+- Leave `release-api-image` triggering on any qualifying push. `docker/metadata-action` (no explicit `tags:`) already tags by branch name via `type=ref,event=branch`, so `release` → `:release` and `dev` → `:dev` automatically — production tagging is unchanged. (Optional: make tags explicit with a `tags:` block if we later want `:latest` on `release`.)
+- Reusable-workflow refs stay `@release` (stable).
 
 **Branch:** create the `dev` branch (git operation, done at execution time, not now).
 
@@ -137,4 +137,4 @@ Copy this plan over and draft there. Expected work:
 4. **DB migration end-to-end:** run the stack ([`docker-compose.yml`](docker-compose.yml) postgres); apply migrations; verify (via adminer) that pre-existing rows show `CLIArguments = []` and a newly seeded package with args persists them as `jsonb`.
 5. **Website:** load a package page locally — confirm the **"Available Commands"** table renders for a package with args and is **absent** for one without.
 6. **Client regen:** confirm regenerated `AVPRClient.cs` contains `CLIArgument` + `CLIArguments`, and an AVPRCI dry-run (`dotnet run --project src/AVPRCI/AVPRCI.fsproj -- publish --api-key <key> --dry-run`) shows the field in the emitted JSON.
-7. **Pipeline:** `workflow_dispatch` dry-run to sanity-check job gating; a no-op push to `dev` should build `:dev` while NOT triggering NuGet releases; `main` behavior unchanged.
+7. **Pipeline:** `workflow_dispatch` dry-run to sanity-check job gating; a no-op push to `dev` should build `:dev` while NOT triggering NuGet releases; `release` behavior unchanged.

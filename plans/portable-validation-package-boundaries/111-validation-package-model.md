@@ -267,7 +267,7 @@ Keep the existing multi-OS main-solution build. The focused job proves Fable
 behavior; the solution build proves ordinary .NET integration.
 
 Wire a model release job into `.github/workflows/pipeline.yml`, gated in the
-same way as the existing package releases: push to `main`, successful tests,
+same way as the existing package releases: push to `release`, successful tests,
 and a deliberate `ValidationPackage.Model/RELEASE_NOTES.md` change. Do not
 publish from pull requests or dry runs.
 

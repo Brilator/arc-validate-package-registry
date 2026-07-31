@@ -2,7 +2,7 @@ name: "Core CI"
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/**
       - "!src/PackageRegistryService/**"
@@ -29,7 +29,7 @@ on:
       - .github/workflows/verify-release.yml
       - .github/actions/setup-portable/**
   push:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/**
       - "!src/PackageRegistryService/**"
@@ -66,6 +66,6 @@ jobs:
     uses: ./.github/workflows/run-build-target.yml
     with:
       target: TestSolution
-      windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
+      windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/release') || (github.event_name == 'pull_request' && github.base_ref == 'release') }}
       ubuntu: true
-      macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
+      macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/release') || (github.event_name == 'pull_request' && github.base_ref == 'release') }}

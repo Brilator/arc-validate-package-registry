@@ -2,7 +2,7 @@ name: "Portable package CI"
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/ValidationPackage.Model/**
       - src/ValidationPackage.Codecs/**
@@ -25,7 +25,7 @@ on:
       - .github/workflows/verify-release.yml
       - .github/actions/setup-portable/**
   push:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/ValidationPackage.Model/**
       - src/ValidationPackage.Codecs/**

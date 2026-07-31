@@ -2,7 +2,7 @@ name: "Service image"
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/PackageRegistryService/**
       - src/AVPR.Staging/**
@@ -17,7 +17,7 @@ on:
       - .github/workflows/service-image.yml
       - .github/workflows/run-build-target.yml
   push:
-    branches: [main, dev]
+    branches: [release, dev]
     paths:
       - src/PackageRegistryService/**
       - src/AVPR.Staging/**
@@ -46,9 +46,9 @@ jobs:
     uses: ./.github/workflows/run-build-target.yml
     with:
       target: TestSolution
-      windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
+      windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/release') || (github.event_name == 'pull_request' && github.base_ref == 'release') }}
       ubuntu: true
-      macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
+      macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/release') || (github.event_name == 'pull_request' && github.base_ref == 'release') }}
 
   publish:
     name: "Publish service image"

@@ -6,7 +6,7 @@ public class DatabaseInitializationTests
 {
     [Theory]
     [InlineData("dev", true)]
-    [InlineData("main", false)]
+    [InlineData("release", false)]
     [InlineData("local", false)]
     [InlineData("DEV", false)]
     [InlineData(null, false)]
@@ -24,7 +24,7 @@ public class DatabaseInitializationTests
     [Theory]
     [InlineData("dev", false, true)]
     [InlineData("dev", true, false)]
-    [InlineData("main", false, false)]
+    [InlineData("release", false, false)]
     [InlineData("local", false, false)]
     [InlineData(null, false, false)]
     public void DeployedDatabaseInitializationRequiresDevAndNoSchema(
