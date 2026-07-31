@@ -2,11 +2,12 @@
 
 ## Status and planning policy
 
-**Status:** implementation underway. The AVPR-side portable model/codecs,
-focused staging boundary, service-owned API/EF models, and generated-client
-interop are implemented, and the `AVPRIndex` source package is retired.
-Milestone 1 is not fully complete until ARCExpect migrates from its existing
-`AVPRIndex` package dependency under arc-validate #242.
+**Status:** implementation underway. Milestones 1–3 and the arc-validate work
+in Milestones 4–5 are complete. The AVPR portable boundaries, native
+Model/Codecs artifacts, and ARCExpect's shared .NET/JavaScript/Python authoring
+and execution API are implemented. The remaining roadmap checkpoint is AVPR
+#115: canonical contract fixtures and downstream arc-validate verification
+against explicit AVPR candidate artifacts.
 
 GitHub tracking:
 
@@ -269,7 +270,7 @@ Outcome:
 Issues:
 
 - [AVPR #115 — Add AVPR contract fixtures and downstream arc-validate compatibility testing](https://github.com/nfdi4plants/arc-validate-package-registry/issues/115)
-- [arc-validate #244 — Prepare ARCExpect ARC-specific APIs for Fable through ARCtrl](https://github.com/nfdi4plants/arc-validate/issues/244)
+- [arc-validate #244 — Consolidate ARCExpect into one portable package with a .NET-specific API boundary](https://github.com/nfdi4plants/arc-validate/issues/244)
 
 Primary work:
 
@@ -294,10 +295,11 @@ Outcome:
   release.
 - ARCExpect has one public identity, three target builds, and no public
   `Core`, `Portable`, or target-suffixed namespace.
-- The top-level shared API boundary is explicit; only its runner implementation
-  remains for the Pyxpecto slice.
+- ARCExpect's shared authoring and execution boundary is implemented; the
+  remaining Milestone 4 work is AVPR #115's contract-fixture and candidate-CI
+  enforcement.
 
-### Milestone 5 — Replace the runner after Pyxpecto rollout permits it
+### Milestone 5 — Provide portable Pyxpecto execution
 
 Issue:
 
@@ -327,6 +329,9 @@ Outcome:
   replacement.
 - Expecto and the temporary compatibility layer can be removed in a planned
   major release.
+- arc-validate #245 is complete using the permitted focused ARCExpect adapter;
+  a future structured Pyxpecto result API can replace that adapter without
+  changing the public result or output contracts.
 
 ---
 
