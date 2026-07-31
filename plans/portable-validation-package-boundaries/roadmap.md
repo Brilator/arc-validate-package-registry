@@ -59,6 +59,11 @@ named for its GitHub issue.
   YAML/frontmatter through YAMLicious and domain JSON through Thoth.Json.
 - File reading, directory traversal, and content hashing are application
   infrastructure, not codec responsibilities.
+- The model and codecs must eventually be published as matching target-native
+  artifacts: NuGet packages for .NET, npm packages for JavaScript, and PyPI
+  packages for Python. A Fable source NuGet package may bootstrap transpilation,
+  but bundling generated model/codec code into downstream packages is only a
+  transition state, not the final dependency boundary.
 
 ### AVPRIndex retirement
 
@@ -98,9 +103,20 @@ named for its GitHub issue.
   not `Expecto.TestRunSummary`.
 - The current Expecto runner remains behind a thin .NET boundary during the
   preparation work.
-- Structured Pyxpecto results and the final runner replacement happen later;
-  Pyxpecto's ecosystem-wide rollout does not block the model, codec, output,
-  CLI, or compatibility work.
+- `ARCExpect.Setup`, `ARCValidationPackage`, and the top-level
+  `ARCExpect.Execute` facade are required public APIs on .NET, JavaScript, and
+  Python. Output writers alone are not a complete transpiled ARCExpect API.
+- Portable validation packages use Fable.Pyxpecto test cases. Structured
+  Pyxpecto results and the final runner replacement happen in the follow-up
+  runner slice; if the released Pyxpecto API is still insufficient, ARCExpect
+  may temporarily own a focused structured-result adapter instead of omitting
+  `Execute` from JavaScript and Python.
+- The existing Expecto test-package and filesystem APIs remain available only
+  as .NET compatibility adapters during the migration.
+- Each ARCExpect build consumes the matching target-native
+  ValidationPackage.Model and ValidationPackage.Codecs artifacts. The .NET
+  project uses NuGet, the JavaScript package uses npm dependencies, and the
+  Python package uses PyPI dependencies.
 
 ### CLI package management
 
@@ -132,18 +148,21 @@ arc-validate-package-registry/
 
 arc-validate/
   src/
-    ARCExpect.Core/                 current package and .NET compatibility path
-    ARCExpect.Core.Portable/        transitional portable results and writers
-    ARCExpect/                      ARC-specific validation APIs
+    ARCExpect/
+      ARCExpect.fsproj              .NET library and compatibility adapters
+      ARCExpect.Javascript.fsproj   Fable JavaScript build
+      ARCExpect.Python.fsproj       Fable Python build
+      DotNet/                       Expecto, filesystem, CV/ARCTokenization
+      *.fs                          shared contracts, Setup, Execute, writers
     arc-validate/
       PackageManagement/            registry, cache, config, install/uninstall
       PackageRunner/                FSI and Python execution
 ```
 
-`ARCExpect.Core.Portable` is a transitional working boundary, not a confirmed
-published package name. Its sources can be absorbed into the final
-`ARCExpect.Core` once the Pyxpecto transition and major-version migration are
-ready.
+The three ARCExpect project files compile the same ordered shared source list.
+Only `ARCExpect.fsproj` additionally compiles the .NET compatibility sources.
+The public identity is `ARCExpect` on NuGet and `arcexpect` on npm/PyPI; project
+suffixes and source folders must not become public namespaces.
 
 ---
 
@@ -201,7 +220,7 @@ Primary moves:
   → portable writers consuming ARCExpect `RunSummary`
 - `Expecto.TestRunSummary` conversion and filesystem writes
   → retained .NET-only compatibility boundary
-- ARCExpect.Core release ownership
+- ARCExpect release ownership
   → registered in `build/ProjectInfo.fs` with package metadata, release notes,
   and dedicated tests
 
@@ -210,7 +229,8 @@ Outcome:
 - Output schemas and writers can be exercised independently of the runner.
 - Existing .NET validation packages continue to use Expecto during the
   transition.
-- A future Pyxpecto runner replaces an adapter rather than redesigning outputs.
+- A Pyxpecto runner replaces an adapter rather than redesigning outputs, and
+  the top-level `Execute` facade remains a required part of the final API.
 
 ### Milestone 3 — Absorb ARCValidationPackages into the CLI
 
@@ -256,9 +276,15 @@ Primary work:
 - AVPR owns canonical model, frontmatter, API JSON, and CWL fixtures.
 - CI packs candidate model, codec, client, and interop artifacts from an
   explicit AVPR commit and tests arc-validate against them before publication.
-- ARCExpect's ARCTokenization, OBO.NET, Graphoscope, Cytoscape.NET, and
-  ControlledVocabulary usage is mapped to Fable-compatible ARCtrl
-  replacements or explicit blockers.
+- ARCExpect is consolidated into one source tree with three parallel .NET,
+  JavaScript, and Python project files following the DataHubClient/ARCtrl
+  project layout.
+- Unused ARCGraph, OBO, Graphoscope, and Cytoscape functionality is retired
+  rather than ported. ARCTokenization and ControlledVocabulary helpers remain
+  available only through the .NET compatibility boundary.
+- AVPR produces target-native ValidationPackage.Model and
+  ValidationPackage.Codecs artifacts so ARCExpect's npm and PyPI packages can
+  declare real runtime dependencies instead of vendoring generated copies.
 - Affected staged packages and compatibility requirements are inventoried
   before migration.
 
@@ -266,8 +292,10 @@ Outcome:
 
 - Cross-repository drift fails against candidate artifacts instead of after
   release.
-- ARCExpect's remaining Fable blockers are explicit and can be migrated in
-  independent slices.
+- ARCExpect has one public identity, three target builds, and no public
+  `Core`, `Portable`, or target-suffixed namespace.
+- The top-level shared API boundary is explicit; only its runner implementation
+  remains for the Pyxpecto slice.
 
 ### Milestone 5 — Replace the runner after Pyxpecto rollout permits it
 
@@ -278,18 +306,23 @@ Issue:
 Primary moves:
 
 - Structured case results
-  → added upstream to `Fable.Pyxpecto` on its own release schedule
+  → obtained from `Fable.Pyxpecto`; prefer an upstream API, with a focused
+  ARCExpect adapter allowed when the released API cannot yet provide them
 - `Expecto.Test` in `ARCValidationPackage`
   → Pyxpecto's portable test representation
 - Expecto result conversion
   → Pyxpecto result-to-ARCExpect-`RunSummary` conversion
-- Transitional portable/compatibility boundaries
-  → consolidated into the final transpilable `ARCExpect.Core`
+- `Setup`, `ARCValidationPackage`, and `Execute`
+  → shared top-level ARCExpect API compiled by all three projects
+- Expecto execution and filesystem writes
+  → retained as .NET compatibility adapters until their planned removal
 
 Outcome:
 
 - ARCExpect authoring and execution use one test framework on .NET, JavaScript,
   and Python.
+- Packed consumers on all three targets can construct a package and invoke the
+  top-level `Execute` API.
 - The already-stable result and output contracts do not change during runner
   replacement.
 - Expecto and the temporary compatibility layer can be removed in a planned
@@ -317,7 +350,10 @@ AVPR model/client candidate artifacts
 
 ARCExpect portable result/output contract
         |
-        +--> later Pyxpecto runner replacement
+        +--> shared Setup/ARCValidationPackage/Execute facade
+                    |
+                    +--> Pyxpecto structured runner
+                    +--> .NET Expecto/filesystem compatibility
 ```
 
 Milestone 3 can proceed alongside much of Milestones 1 and 2, provided its
@@ -373,8 +409,8 @@ their own issues:
 - Publish ARC specification validation as a validation package.
 - Move `StagingArea/` into a separate repository.
 - Retarget all non-portable projects to a newer .NET target framework.
-- Define the exact final project/package name of the transitional portable
-  ARCExpect boundary before the Pyxpecto cutover.
+- Define version synchronization and release automation across each library's
+  NuGet, npm, and PyPI artifacts.
 
 ---
 
@@ -393,3 +429,6 @@ The epic is complete when:
 - Candidate AVPR artifacts are tested downstream in arc-validate.
 - ARCExpect has a portable result/output contract and a documented path from
   the temporary Expecto boundary to Pyxpecto.
+- ARCExpect exposes `Setup`, `ARCValidationPackage`, and `Execute` from its
+  .NET, JavaScript, and Python packages, using target-native model and codec
+  dependencies.
