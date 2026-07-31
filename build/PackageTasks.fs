@@ -228,8 +228,5 @@ let packCodecs = BuildTask.create "PackCodecs" [ cleanPackages; preparePortableT
     packCodecsPython ()
 }
 
-let packClientPackages =
-    BuildTask.createEmpty "PackClientPackages" [ packClient; packModel; packClientInterop ]
-
 let packPortablePackages =
     BuildTask.createEmpty "PackPortablePackages" [ packModel; packCodecs ]
