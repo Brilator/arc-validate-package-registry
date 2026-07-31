@@ -90,7 +90,7 @@ module CanonicalFixture =
 
         Assert.Equal(expectedMetadata, roundTripped)
         Assert.True(
-            File.ReadAllBytes(scriptPath) = generated.PackageContent,
+            NormalizedContent.fromFile scriptPath = generated.PackageContent,
             "Generated client package content drifted."
         )
 
