@@ -24,6 +24,11 @@ or `dev`, split by responsibility:
 - package-specific manual workflows rerun their required gates before entering
   the protected publishing environment.
 
+Routine `dev`, manual, and package-release verification runs the main solution
+on Ubuntu. Pushes to `main` and pull requests targeting `main` add Windows and
+macOS, providing a cross-platform gate without multiplying every development
+build.
+
 Workflow actions, permissions, and release branches are defined under
 `.github/workflows/` in the repository.
 

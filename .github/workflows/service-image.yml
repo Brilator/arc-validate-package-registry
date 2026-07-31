@@ -47,9 +47,9 @@ jobs:
     uses: ./.github/workflows/run-build-target.yml
     with:
       target: TestSolution
-      windows: true
+      windows: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
       ubuntu: true
-      macos: true
+      macos: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
 
   downstream-compatibility:
     name: "Test pinned arc-validate against AVPR candidates"

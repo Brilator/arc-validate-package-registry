@@ -91,13 +91,13 @@ flowchart TD
     Changes --> Staging["staging-ci.yml<br/>staging and checker changes"]
     Changes --> Service["service-image.yml<br/>registry-service changes"]
 
-    CoreCI --> Core["TestSolution<br/>Windows, Linux, macOS"]
+    CoreCI --> Core["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
     Core --> Downstream["Pinned arc-validate<br/>candidate compatibility"]
     PortableCI --> Portable["Portable contracts<br/>.NET, JavaScript, Python"]
 
     Staging --> StagingTests["TestStagingArea<br/>Windows with uv"]
 
-    Service --> ServiceTests["TestSolution<br/>Windows, Linux, macOS"]
+    Service --> ServiceTests["TestSolution<br/>Ubuntu; all OSes for main push/PR"]
     ServiceTests --> ServiceDownstream["Pinned arc-validate<br/>candidate compatibility"]
     ServiceDownstream --> Image["GHCR service image<br/>main or dev push"]
 

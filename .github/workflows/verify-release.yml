@@ -18,9 +18,7 @@ jobs:
     uses: ./.github/workflows/run-build-target.yml
     with:
       target: TestSolution
-      windows: true
       ubuntu: true
-      macos: true
 
   test-portable:
     name: "Test portable package"
