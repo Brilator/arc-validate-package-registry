@@ -119,30 +119,25 @@ let testNativeValidationPackages =
         runCommand "node" [ "javascript.mjs" ] javaScriptDirectory
 
         let pythonDirectory = Path.Combine(codecsPackageSmokeDir, "native-python")
-        let virtualEnvironment = Path.Combine(pythonDirectory, ".venv")
         recreateDirectory pythonDirectory
         File.Copy(
             Path.Combine(sourceDirectory, "python.py"),
             Path.Combine(pythonDirectory, "python.py"),
             true
         )
-        runUv [ "venv"; virtualEnvironment ] "."
-        let python =
-            if System.OperatingSystem.IsWindows() then
-                Path.Combine(virtualEnvironment, "Scripts", "python.exe")
-            else
-                Path.Combine(virtualEnvironment, "bin", "python")
         runUv
             [
-                "pip"
-                "install"
-                "--python"
-                python
+                "run"
+                "--isolated"
+                "--no-project"
+                "--with"
                 exactlyOneArtifact "validationpackage_model-*.whl"
+                "--with"
                 exactlyOneArtifact "validationpackage_codecs-*.whl"
+                "python"
+                "python.py"
             ]
-            "."
-        runCommand python [ "python.py" ] pythonDirectory
+            pythonDirectory
     }
 
 let testPortableCodecs =
