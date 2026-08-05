@@ -2,11 +2,13 @@
 
 ## Status and planning policy
 
-**Status:** implementation complete. All five milestones are implemented. AVPR
-owns canonical cross-boundary fixtures, builds explicit NuGet/npm/Python
-candidate artifacts, and gates release paths on the pinned arc-validate
-consumer suite. ARCExpect exposes its shared authoring and execution API from
-.NET, JavaScript, and Python using target-native model and codec dependencies.
+**Status:** the five roadmap milestones are implemented. AVPR owns canonical
+cross-boundary fixtures and verifies its NuGet/npm/Python artifacts. Downstream
+ARCExpect compatibility belongs to arc-validate's normal contract, packed-
+consumer, and release checks; AVPR does not clone or rebuild arc-validate.
+ARCExpect exposes its shared authoring and execution API from .NET, JavaScript,
+and Python using target-native model and codec dependencies. Post-roadmap API
+hardening continues without reopening the completed extraction milestones.
 
 GitHub tracking:
 
@@ -42,8 +44,8 @@ named for its GitHub issue.
   changes to the widely consumed `Fable.Pyxpecto` library.
 - Move package caching, installation, and process execution into the
   `arc-validate` CLI, where they are actually consumed.
-- Make contract drift between AVPR and arc-validate fail in CI before package
-  publication.
+- Make contract drift fail through each repository's normal package and
+  consumer checks without coupling their CI implementations.
 
 ---
 
@@ -101,18 +103,22 @@ named for its GitHub issue.
   per-case results, and run summaries.
 - Portable summary, JUnit, and badge generation consumes that result contract,
   not `Expecto.TestRunSummary`.
-- The current Expecto runner remains behind a thin .NET boundary during the
-  preparation work.
+- ARCExpect production package authoring and execution use Fable.Pyxpecto on
+  every target. Expecto may remain in .NET test projects as their test harness,
+  but is not an ARCExpect production dependency.
 - `ARCExpect.Setup`, `ARCValidationPackage`, and the top-level
   `ARCExpect.Execute` facade are required public APIs on .NET, JavaScript, and
   Python. Output writers alone are not a complete transpiled ARCExpect API.
-- Portable validation packages use Fable.Pyxpecto test cases. Structured
-  Pyxpecto results and the final runner replacement happen in the follow-up
-  runner slice; if the released Pyxpecto API is still insufficient, ARCExpect
-  may temporarily own a focused structured-result adapter instead of omitting
-  `Execute` from JavaScript and Python.
-- The existing Expecto test-package and filesystem APIs remain available only
-  as .NET compatibility adapters during the migration.
+- Portable validation packages use Fable.Pyxpecto test cases. ARCExpect owns a
+  focused structured-result adapter until Pyxpecto exposes an equivalent API.
+- An internal output pipeline combines critical and non-critical results and
+  creates summary JSON, JUnit XML, and badge SVG content without adding a
+  public orchestration type or requiring authors to call individual writers in
+  the standard flow. Individual `Execute` output operations and pure content
+  writers remain public for custom workflows.
+- Filesystem writes are target boundaries: .NET owns its adapter under
+  `DotNet/`, Python owns its native package facade, and JavaScript package/file
+  conventions remain deliberately undesigned.
 - Each ARCExpect build consumes the matching target-native
   ValidationPackage.Model and ValidationPackage.Codecs artifacts. The .NET
   project uses NuGet, the JavaScript package uses npm dependencies, and the
@@ -152,8 +158,10 @@ arc-validate/
       ARCExpect.fsproj              .NET library and compatibility adapters
       ARCExpect.Javascript.fsproj   Fable JavaScript build
       ARCExpect.Python.fsproj       Fable Python build
-      DotNet/                       Expecto, filesystem, CV/ARCTokenization
-      *.fs                          shared contracts, Setup, Execute, writers
+      Common/                       shared contracts, Setup, Execute, writers
+      DotNet/                       .NET runtime, filesystem, CV/ARCTokenization
+      Python/                       Python runtime and native top-level facade
+      Javascript/                   JavaScript runtime and native top-level facade
     arc-validate/
       PackageManagement/            registry, cache, config, install/uninstall
       PackageRunner/                FSI and Python execution
@@ -218,8 +226,8 @@ Primary moves:
   → portable ARCExpect source/project boundary
 - Summary, JUnit, and badge content generation
   → portable writers consuming ARCExpect `RunSummary`
-- `Expecto.TestRunSummary` conversion and filesystem writes
-  → retained .NET-only compatibility boundary
+- result combination and three-format output orchestration
+  → internal portable pipeline, with target-specific filesystem adapters
 - ARCExpect release ownership
   → registered in `build/ProjectInfo.fs` with package metadata, release notes,
   and dedicated tests
@@ -227,10 +235,10 @@ Primary moves:
 Outcome:
 
 - Output schemas and writers can be exercised independently of the runner.
-- Existing .NET validation packages continue to use Expecto during the
-  transition.
-- A Pyxpecto runner replaces an adapter rather than redesigning outputs, and
-  the top-level `Execute` facade remains a required part of the final API.
+- Immutable published packages retain their historical exact ARCExpect pins;
+  new package versions use Pyxpecto.
+- The top-level pipeline restores the established one-call output behavior
+  without exposing result combination or writer orchestration to authors.
 
 ### Milestone 3 — Absorb ARCValidationPackages into the CLI
 
@@ -274,8 +282,9 @@ Issues:
 Primary work:
 
 - AVPR owns canonical model, frontmatter, API JSON, and CWL fixtures.
-- CI packs candidate model, codec, client, and interop artifacts from an
-  explicit AVPR commit and tests arc-validate against them before publication.
+- AVPR CI verifies model, codec, client, and interop artifacts in AVPR;
+  arc-validate verifies its exact dependency pins and packed consumers in its
+  own normal CI and release process.
 - ARCExpect is consolidated into one source tree with three parallel .NET,
   JavaScript, and Python project files following the DataHubClient/ARCtrl
   project layout.
@@ -290,8 +299,8 @@ Primary work:
 
 Outcome:
 
-- Cross-repository drift fails against candidate artifacts instead of after
-  release.
+- Cross-repository drift fails in the owning repository's artifact and
+  downstream-consumer checks without a cross-repository clone/build harness.
 - ARCExpect has one public identity, three target builds, and no public
   `Core`, `Portable`, or target-suffixed namespace.
 - ARCExpect's shared authoring and execution boundary is implemented, and AVPR
@@ -315,8 +324,9 @@ Primary moves:
   → Pyxpecto result-to-ARCExpect-`RunSummary` conversion
 - `Setup`, `ARCValidationPackage`, and `Execute`
   → shared top-level ARCExpect API compiled by all three projects
-- Expecto execution and filesystem writes
-  → retained as .NET compatibility adapters until their planned removal
+- output filesystem writes
+  → .NET and Python target-specific adapters over the internal portable output
+  pipeline; JavaScript remains “Coming soon”
 
 Outcome:
 
@@ -326,8 +336,8 @@ Outcome:
   top-level `Execute` API.
 - The already-stable result and output contracts do not change during runner
   replacement.
-- Expecto and the temporary compatibility layer can be removed in a planned
-  major release.
+- Expecto and its temporary production compatibility layer are removed in the
+  ARCExpect 7 preview line.
 - arc-validate #245 is complete using the permitted focused ARCExpect adapter;
   a future structured Pyxpecto result API can replace that adapter without
   changing the public result or output contracts.
@@ -348,16 +358,19 @@ ValidationPackage.Model
         +--> AVPRClient.Interop
         +--> ARCExpect portable results/output
 
-AVPR model/client candidate artifacts
+Published AVPR model/client artifacts
         |
-        +--> cross-repository arc-validate verification
+        +--> pinned arc-validate dependency and packed-consumer verification
 
 ARCExpect portable result/output contract
         |
         +--> shared Setup/ARCValidationPackage/Execute facade
                     |
                     +--> Pyxpecto structured runner
-                    +--> .NET Expecto/filesystem compatibility
+                    +--> internal portable output pipeline
+                              |
+                              +--> .NET filesystem adapter
+                              +--> Python filesystem adapter
 ```
 
 Milestone 3 can proceed alongside much of Milestones 1 and 2, provided its
@@ -430,7 +443,8 @@ The epic is complete when:
 - `AVPRClient` is generated-only.
 - ARCValidationPackages has been absorbed or deliberately retained based on
   verified external usage.
-- Candidate AVPR artifacts are tested downstream in arc-validate.
+- AVPR artifacts are verified in AVPR and exact published pins are exercised
+  by arc-validate's normal contract and packed-consumer checks.
 - ARCExpect has a portable result/output contract and a documented path from
   the temporary Expecto boundary to Pyxpecto.
 - ARCExpect exposes `Setup`, `ARCValidationPackage`, and `Execute` from its
