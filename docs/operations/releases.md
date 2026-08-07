@@ -191,6 +191,9 @@ Each npm package can have only one trusted publisher. The values are
 case-sensitive and the workflow filename includes `.yml`. No `NPM_TOKEN`
 secret is used. Keep the packages in the `nfdi4plants` npm scope and grant
 maintainer access through the npm organization rather than a personal scope.
+The workflows explicitly publish prerelease versions with the `preview`
+dist-tag and stable versions with `latest`; npm rejects prerelease publication
+without a non-`latest` tag.
 
 On pypi.org, open each project under **Manage → Publishing**, add a GitHub
 Actions trusted publisher, and enter:
