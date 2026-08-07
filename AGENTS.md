@@ -232,7 +232,7 @@ When adding tests:
   successful policy can publish any NuGet package owned by that account. npm
   publishers are configured per scoped package and PyPI publishers per project,
   using the exact field matrix in `docs/operations/releases.md`.
-- All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy. Reusable publishers must read it directly from their job environment because GitHub cannot pass environment secrets through `workflow_call`.
+- All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is a repository Actions variable containing only the public nuget.org profile name associated with the policy. Repository variables remain available to same-repository reusable workflows without forwarding secrets.
 - A staged package marked for publication can be pushed to the production registry after checks pass.
 - Workflow actions should remain pinned to deliberate versions/commits. Preserve least-privilege permissions and never print secrets.
 

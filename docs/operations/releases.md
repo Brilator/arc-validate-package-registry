@@ -152,10 +152,10 @@ versioned so consumers can opt into portable model conversion.
 Create a protected GitHub environment named `release` in both repositories.
 Add required reviewers and allow deployments from both `dev` and `release` so
 the manually dispatched package workflows can publish reviewed preview versions
-from `dev` as well as production versions from `release`. Store one environment
-secret, `NUGET_USER`, whose value is the nuget.org profile that owns the
-trusted-publishing policies (currently `Mutagene`),
-not an email address, GitHub username, organization name, or API key.
+from `dev` as well as production versions from `release`. Create one repository
+Actions variable, `NUGET_USER`, whose value is the nuget.org profile that owns
+the trusted-publishing policies (currently `Mutagene`), not an email address,
+GitHub username, organization name, or API key.
 
 On nuget.org, select the personal account `Mutagene` as the policy owner and
 keep the NuGet packages owned by that account. NuGet policies are owner-wide:
@@ -174,10 +174,9 @@ only:
 
 The Client and Interop policy names the called reusable workflow because that
 is the workflow NuGet observes in the `job_workflow_ref` claim. The reusable
-workflow reads `NUGET_USER` directly from its `release` environment; environment
-secrets cannot be passed through `workflow_call` by the caller. The four policy
-rows distinguish trusted workflow identities, but they do not create four
-package-level scopes.
+workflow reads the `NUGET_USER` repository variable directly, so no secret needs
+to be forwarded through `workflow_call`. The four policy rows distinguish
+trusted workflow identities, but they do not create four package-level scopes.
 
 On npmjs.com, open each package's **Settings → Trusted Publisher**, select
 **GitHub Actions**, and enter:
@@ -230,8 +229,8 @@ workflows.
 
 The publish jobs request `id-token: write`. `NuGet/login` exchanges OIDC for a
 temporary API key; npm and PyPI also exchange OIDC without repository tokens.
-Store only the nuget.org profile name as `NUGET_USER`, and do not restore a
-long-lived `NUGET_KEY`, npm token, or PyPI token.
+Store only the nuget.org profile name in the `NUGET_USER` repository Actions
+variable, and do not restore a long-lived `NUGET_KEY`, npm token, or PyPI token.
 
 See the official registry instructions for
 [NuGet trusted publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing),
