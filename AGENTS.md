@@ -211,6 +211,9 @@ When adding tests:
   `## <version> - YYYY-MM-DD`; the service may append ` - <release title>`.
   Run `./build.cmd ValidateReleaseMetadata` after changing either side. Main
   builds, staging checks, and every package target enforce the same gate.
+- During a prerelease line, keep one rolling top release-notes entry and bump
+  its preview version in place. Preserve published non-preview entries as
+  immutable history.
 - `ci.yml` owns path-focused main solution tests for core libraries and clients. Downstream package compatibility belongs to the downstream repository's normal CI and release process; AVPR workflows must not clone and rebuild `arc-validate`.
 - `portable-ci.yml` owns cross-target Model and Codecs tests. It runs both portable targets when either portable implementation, consumer test, or shared build tool changes.
 - `staging-ci.yml` owns `StagingArea/**`, staging-checker, staging-model/codec, and relevant build-tool changes. It runs `TestStagingArea` on Windows with `uv` installed.
@@ -222,12 +225,13 @@ When adding tests:
 - Model and Codecs NuGet trusted-publisher policies must name their direct workflow (`release-model.yml` or `release-codecs.yml`). Client and Interop policies must name the called reusable workflow `release-package.yml`, which NuGet observes through `job_workflow_ref`.
 - npm trusted-publisher policies for the scoped Model and Codecs packages must name the corresponding direct package workflow and allow `npm publish`. These workflows use Node 24, npm with trusted-publishing support, and no npm token.
 - PyPI trusted-publisher policies for Model and Codecs must name the corresponding direct, top-level package workflow. Do not move PyPI publishing into a reusable workflow.
-- The `nfdi4plants` NuGet organization must own every actively released NuGet
-  package and every NuGet trusted-publishing policy. `NUGET_USER` is the
-  personal nuget.org username that creates those organization policies, not
-  the organization name. npm publishers are configured per scoped package and
-  PyPI publishers per project, using the exact field matrix in
-  `docs/operations/releases.md`.
+- NuGet trusted-publishing policies are owner-wide and cannot be scoped to an
+  individual package. The current policy owner and package owner is the
+  `Mutagene` nuget.org account, and `NUGET_USER` must contain that same profile
+  name. Separate policies restrict the repository/workflow identity, but each
+  successful policy can publish any NuGet package owned by that account. npm
+  publishers are configured per scoped package and PyPI publishers per project,
+  using the exact field matrix in `docs/operations/releases.md`.
 - All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy. Reusable publishers must read it directly from their job environment because GitHub cannot pass environment secrets through `workflow_call`.
 - A staged package marked for publication can be pushed to the production registry after checks pass.
 - Workflow actions should remain pinned to deliberate versions/commits. Preserve least-privilege permissions and never print secrets.

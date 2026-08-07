@@ -1,6 +1,8 @@
-## 0.3.0-preview.2 - 2026-07-31
+## 0.3.0-preview.3 - 2026-08-07
 - Regenerate the client for the supported CWL v1.2 scalar `Inputs` contract.
 - Move all handwritten model and staging mappings to `AVPRClient.Interop` and `AVPRCI`, leaving this package generated-only.
+- Replace token-based publication with a manually approved, retry-safe NuGet
+  trusted-publishing workflow.
 
 ## v0.2.1
 - fix : Correct `ProgrammingLanguage` field mapping in `ValidationPackage` type extension.

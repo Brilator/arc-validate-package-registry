@@ -105,6 +105,10 @@ Release workflows rerun their required tests before publishing. No
 `RELEASE_NOTES.md` change or branch push publishes a library package
 automatically.
 
+Prerelease notes use one rolling top entry: bump that entry in place and keep
+accumulating the unreleased preview changes beneath it. Once a non-preview
+version is published, its release-notes entry is immutable.
+
 To release every new package version in this repository, manually dispatch
 `release-all.yml` against the intended ref. It validates the version gate,
 checks the exact committed versions on each package's target registries, and
@@ -149,17 +153,19 @@ Create a protected GitHub environment named `release` in both repositories.
 Add required reviewers and allow deployments from both `dev` and `release` so
 the manually dispatched package workflows can publish reviewed preview versions
 from `dev` as well as production versions from `release`. Store one environment
-secret, `NUGET_USER`, whose value is the personal nuget.org
-username that creates the trusted-publishing policies (currently `Mutagene`),
+secret, `NUGET_USER`, whose value is the nuget.org profile that owns the
+trusted-publishing policies (currently `Mutagene`),
 not an email address, GitHub username, organization name, or API key.
 
-On nuget.org, select the `nfdi4plants` organization as the policy owner. Every
-NuGet package below must be owned by that organization. If it currently shows a
-personal owner, add `nfdi4plants` as co-owner first and remove the personal
-owner only after organization ownership and publishing have been verified.
-Create these policies; workflow values are filenames only:
+On nuget.org, select the personal account `Mutagene` as the policy owner and
+keep the NuGet packages owned by that account. NuGet policies are owner-wide:
+they cannot be restricted to an individual package. Consequently, each policy
+below can technically publish any package owned by `Mutagene`; the package
+column documents the intended use of the authorized workflow, not a NuGet
+enforcement boundary. Create these policies; workflow values are filenames
+only:
 
-| Packages covered | Repository owner | Repository | Workflow file | Environment |
+| Intended packages | Repository owner | Repository | Workflow file | Environment |
 | --- | --- | --- | --- | --- |
 | `ValidationPackage.Model` | `nfdi4plants` | `arc-validate-package-registry` | `release-model.yml` | `release` |
 | `ValidationPackage.Codecs` | `nfdi4plants` | `arc-validate-package-registry` | `release-codecs.yml` | `release` |
@@ -169,7 +175,9 @@ Create these policies; workflow values are filenames only:
 The Client and Interop policy names the called reusable workflow because that
 is the workflow NuGet observes in the `job_workflow_ref` claim. The reusable
 workflow reads `NUGET_USER` directly from its `release` environment; environment
-secrets cannot be passed through `workflow_call` by the caller.
+secrets cannot be passed through `workflow_call` by the caller. The four policy
+rows distinguish trusted workflow identities, but they do not create four
+package-level scopes.
 
 On npmjs.com, open each package's **Settings → Trusted Publisher**, select
 **GitHub Actions**, and enter:

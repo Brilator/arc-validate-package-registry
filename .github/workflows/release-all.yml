@@ -157,48 +157,59 @@ jobs:
             ]];
 
             for (const packageDefinition of packages) {
-              const registryStates = [];
+              try {
+                const registryStates = [];
 
-              for (const [registry, check] of packageDefinition.checks) {
-                const exists = await check(packageDefinition.version);
-                registryStates.push(`${registry}: ${exists ? "published" : "missing"}`);
-              }
+                for (const [registry, check] of packageDefinition.checks) {
+                  const exists = await check(packageDefinition.version);
+                  registryStates.push(`${registry}: ${exists ? "published" : "missing"}`);
+                }
 
-              const missing = registryStates.some(state => state.endsWith(": missing"));
-              let action = "Skipped: version is fully published";
+                const missing = registryStates.some(state => state.endsWith(": missing"));
+                let action = "Skipped: version is fully published";
 
-              if (missing) {
-                const activeRuns = await github.rest.actions.listWorkflowRuns({
-                  owner,
-                  repo,
-                  workflow_id: packageDefinition.workflow,
-                  branch: ref,
-                  per_page: 20
-                });
-
-                const alreadyRunning = activeRuns.data.workflow_runs.some(run =>
-                  run.head_sha === context.sha && run.status !== "completed"
-                );
-
-                if (alreadyRunning) {
-                  action = "Skipped: workflow already running for this revision";
-                } else {
-                  await github.rest.actions.createWorkflowDispatch({
+                if (missing) {
+                  const activeRuns = await github.rest.actions.listWorkflowRuns({
                     owner,
                     repo,
                     workflow_id: packageDefinition.workflow,
-                    ref
+                    branch: ref,
+                    per_page: 20
                   });
-                  action = `Dispatched ${packageDefinition.workflow}`;
-                }
-              }
 
-              rows.push([
-                packageDefinition.name,
-                packageDefinition.version,
-                registryStates.join("; "),
-                action
-              ]);
+                  const alreadyRunning = activeRuns.data.workflow_runs.some(run =>
+                    run.head_sha === context.sha && run.status !== "completed"
+                  );
+
+                  if (alreadyRunning) {
+                    action = "Skipped: workflow already running for this revision";
+                  } else {
+                    await github.rest.actions.createWorkflowDispatch({
+                      owner,
+                      repo,
+                      workflow_id: packageDefinition.workflow,
+                      ref
+                    });
+                    action = `Dispatched ${packageDefinition.workflow}`;
+                  }
+                }
+
+                rows.push([
+                  packageDefinition.name,
+                  packageDefinition.version,
+                  registryStates.join("; "),
+                  action
+                ]);
+              } catch (error) {
+                core.error(`${packageDefinition.name}: ${error.message}`);
+                core.setFailed("One or more package checks or dispatches failed; remaining packages were still processed.");
+                rows.push([
+                  packageDefinition.name,
+                  packageDefinition.version,
+                  "Check incomplete",
+                  `Failed: ${error.message}`
+                ]);
+              }
             }
 
             await core.summary
