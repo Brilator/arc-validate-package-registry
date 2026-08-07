@@ -6,6 +6,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-avprclient
+  cancel-in-progress: false
+
 jobs:
   verify:
     name: "Verify AVPRClient release"
@@ -20,5 +24,3 @@ jobs:
     uses: ./.github/workflows/release-package.yml
     with:
       target: PackClient
-    secrets:
-      NUGET_USER: ${{ secrets.NUGET_USER }}

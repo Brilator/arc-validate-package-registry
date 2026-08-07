@@ -25,6 +25,7 @@ Validation packages are self-contained, single-file F# (`.fsx`) or Python (`.py`
 - `.github/workflows/service-image.yml`: service tests and `release`/`dev` container publication.
 - `.github/workflows/release-model.yml` and `release-codecs.yml`: package-oriented, manually dispatched NuGet/npm/PyPI trusted publication.
 - `.github/workflows/release-client.yml` and `release-client-interop.yml`: manually dispatched client gates and NuGet publication.
+- `.github/workflows/release-all.yml`: manually checks committed versions against their registries and dispatches only package workflows with missing artifacts.
 - `.github/workflows/release-package.yml`: reusable NuGet trusted-publishing job used only by the client release workflows.
 - `.github/workflows/verify-release.yml`: reusable core/portable release gate; it never publishes.
 - `.github/workflows/run-build-target.yml`: reusable cross-platform build-target runner.
@@ -204,17 +205,30 @@ When adding tests:
 
 ## CI and release safety
 
+- Each published library and the registry service owns its version in its
+  project file (`PackageVersion` for packages and `Version` for the service).
+  Its first versioned `RELEASE_NOTES.md` heading must be
+  `## <version> - YYYY-MM-DD`; the service may append ` - <release title>`.
+  Run `./build.cmd ValidateReleaseMetadata` after changing either side. Main
+  builds, staging checks, and every package target enforce the same gate.
 - `ci.yml` owns path-focused main solution tests for core libraries and clients. Downstream package compatibility belongs to the downstream repository's normal CI and release process; AVPR workflows must not clone and rebuild `arc-validate`.
 - `portable-ci.yml` owns cross-target Model and Codecs tests. It runs both portable targets when either portable implementation, consumer test, or shared build tool changes.
 - `staging-ci.yml` owns `StagingArea/**`, staging-checker, staging-model/codec, and relevant build-tool changes. It runs `TestStagingArea` on Windows with `uv` installed.
 - Routine `dev`, manual, and package-release verification runs `TestSolution` on Ubuntu. Pushes to `release` and pull requests targeting `release` additionally run it on Windows and macOS; this is the repository's cross-platform gate.
 - `service-image.yml` owns the service project, its local project references, bundled `StagingArea`/documentation content, and Docker build inputs. It runs the applicable `TestSolution` gate before publishing an image on a branch push. Pull requests and the default manual dry run never publish.
 - `dev` is the default, long-lived integration branch whose service changes publish `ghcr.io/nfdi4plants/avpr:dev`; `release` is the production branch and publishes `ghcr.io/nfdi4plants/avpr:release`. Package publication is never triggered by a branch push.
-- `release-model.yml` and `release-codecs.yml` each rerun core and portable gates, pack once, and publish the same revision to NuGet, npm, and PyPI from a protected `release` environment. Release Model before Codecs when both versions change.
+- `release-model.yml` and `release-codecs.yml` each rerun core and portable gates, pack once, preserve that build as a workflow artifact, and publish it through independent NuGet, npm, and PyPI jobs from a protected `release` environment. A failed registry job must be retriable without rebuilding or rerunning successful registry jobs. Release Model before Codecs when both versions change.
+- `release-all.yml` is an orchestration convenience only. It validates release metadata, checks the exact committed versions on NuGet/npm/PyPI, and dispatches the existing package-specific workflows for incomplete versions. It must never publish directly or replace their trusted-publisher identities.
 - Model and Codecs NuGet trusted-publisher policies must name their direct workflow (`release-model.yml` or `release-codecs.yml`). Client and Interop policies must name the called reusable workflow `release-package.yml`, which NuGet observes through `job_workflow_ref`.
 - npm trusted-publisher policies for the scoped Model and Codecs packages must name the corresponding direct package workflow and allow `npm publish`. These workflows use Node 24, npm with trusted-publishing support, and no npm token.
 - PyPI trusted-publisher policies for Model and Codecs must name the corresponding direct, top-level package workflow. Do not move PyPI publishing into a reusable workflow.
-- All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy.
+- The `nfdi4plants` NuGet organization must own every actively released NuGet
+  package and every NuGet trusted-publishing policy. `NUGET_USER` is the
+  personal nuget.org username that creates those organization policies, not
+  the organization name. npm publishers are configured per scoped package and
+  PyPI publishers per project, using the exact field matrix in
+  `docs/operations/releases.md`.
+- All package publish jobs need `id-token: write` and the `release` environment. `NuGet/login` exchanges OIDC for a temporary key; never restore a long-lived `NUGET_KEY`. `NUGET_USER` is only the nuget.org profile name associated with the policy. Reusable publishers must read it directly from their job environment because GitHub cannot pass environment secrets through `workflow_call`.
 - A staged package marked for publication can be pushed to the production registry after checks pass.
 - Workflow actions should remain pinned to deliberate versions/commits. Preserve least-privilege permissions and never print secrets.
 

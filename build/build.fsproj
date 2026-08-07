@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="ProjectInfo.fs" />
+    <Compile Include="ReleaseMetadata.fs" />
     <Compile Include="BasicTasks.fs" />
     <Compile Include="PackageTasks.fs" />
     <Compile Include="PortableModelTasks.fs" />

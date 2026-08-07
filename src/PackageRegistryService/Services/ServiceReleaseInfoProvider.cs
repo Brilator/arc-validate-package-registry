@@ -92,7 +92,7 @@ public sealed partial class ServiceReleaseInfoProvider : IServiceReleaseInfoProv
     }
 
     [GeneratedRegex(
-        @"^##\s+\[?(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\]?\s+(?:—|-)\s+(?<name>.+?)\s*$"
+        @"^##\s+(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\s+-\s+\d{4}-\d{2}-\d{2}\s+-\s+(?<name>.+?)\s*$"
     )]
     private static partial Regex ReleaseHeading();
 }

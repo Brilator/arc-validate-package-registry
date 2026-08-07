@@ -6,21 +6,14 @@ on:
 permissions:
   contents: read
 
-jobs:
-  verify:
-    name: "Verify Model release"
-    uses: ./.github/workflows/verify-release.yml
-    with:
-      portable_target: TestPortableModel
+concurrency:
+  group: release-validationpackage-model
+  cancel-in-progress: false
 
-  publish:
-    name: "Publish Model packages"
-    needs: verify
+jobs:
+  verify-and-pack:
+    name: "Verify and pack Model"
     runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,11 +21,44 @@ jobs:
       - name: Set up portable package toolchain
         uses: ./.github/actions/setup-portable
 
-      - name: Install npm with trusted-publishing support
-        run: npm install --global npm@11.5.1
+      - name: Run solution tests
+        run: ./build.sh TestSolution
 
-      - name: Pack Model
-        run: ./build.sh PackModel
+      - name: Test packed Model packages
+        run: ./build.sh TestPortableModel
+
+      - name: Preserve release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: validationpackage-model-release
+          path: |
+            artifacts/packages/ValidationPackage.Model.*.nupkg
+            artifacts/packages/nfdi4plants-validationpackage-model-*.tgz
+            artifacts/packages/validationpackage_model-*.whl
+            artifacts/portable/validationpackage-model/javascript/package.json
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+  publish-nuget:
+    name: "Publish Model to NuGet"
+    needs: verify-and-pack
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x.x
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: validationpackage-model-release
+          path: artifacts
 
       - name: NuGet login
         uses: NuGet/login@v1
@@ -42,6 +68,30 @@ jobs:
 
       - name: Publish Model to NuGet
         run: dotnet nuget push ./artifacts/packages/ValidationPackage.Model.*.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  publish-npm:
+    name: "Publish Model to npm"
+    needs: verify-and-pack
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install npm with trusted-publishing support
+        run: npm install --global npm@11.5.1
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: validationpackage-model-release
+          path: artifacts
 
       - name: Publish Model to npm
         shell: bash
@@ -61,6 +111,21 @@ jobs:
           else
             npm publish "${packages[0]}" --access public
           fi
+
+  publish-pypi:
+    name: "Publish Model to PyPI"
+    needs: verify-and-pack
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: validationpackage-model-release
+          path: artifacts
 
       - name: Stage Model wheel
         shell: bash

@@ -93,24 +93,36 @@ flowchart TD
     Service --> ServiceTests["TestSolution<br/>Ubuntu; all OSes for release push/PR"]
     ServiceTests --> Image["GHCR service image<br/>release or dev push"]
 
-    Manual --> ModelRelease["release-model.yml<br/>build Model once"]
-    Manual --> CodecsRelease["release-codecs.yml<br/>build Codecs once"]
+    Manual --> ReleaseAll["release-all.yml<br/>check all committed versions"]
+    Manual --> ModelRelease["release-model.yml<br/>verify + pack Model once"]
+    Manual --> CodecsRelease["release-codecs.yml<br/>verify + pack Codecs once"]
     Manual --> ClientRelease["release-client.yml<br/>or release-client-interop.yml"]
+    ReleaseAll -. "dispatch if missing" .-> ModelRelease
+    ReleaseAll -. "dispatch if missing" .-> CodecsRelease
+    ReleaseAll -. "dispatch if missing" .-> ClientRelease
 
-    ModelRelease --> NuGet["NuGet"]
-    ModelRelease --> Npm["npm"]
-    ModelRelease --> PyPI["PyPI"]
-    CodecsRelease --> NuGet
-    CodecsRelease --> Npm
-    CodecsRelease --> PyPI
+    ModelRelease --> ModelArtifact["Model release artifact"]
+    CodecsRelease --> CodecsArtifact["Codecs release artifact"]
+    ModelArtifact --> NuGet["NuGet"]
+    ModelArtifact --> Npm["npm"]
+    ModelArtifact --> PyPI["PyPI"]
+    CodecsArtifact --> NuGet
+    CodecsArtifact --> Npm
+    CodecsArtifact --> PyPI
     ClientRelease --> NuGetPublisher["release-package.yml"]
     NuGetPublisher --> NuGet
 ```
 
 Publication jobs use the protected `release` environment and OIDC trusted
-publishing. Model and Codecs each pack once and publish the resulting artifacts
-to all three registries. Registry policies must authorize the exact workflow
-filename that performs each publish job.
+publishing. Model and Codecs each pack once, preserve that build as a workflow
+artifact, and fan out to independent NuGet, npm, and PyPI jobs. Failed registry
+jobs can therefore be retried without rebuilding or rerunning successful
+registry jobs. Registry policies must authorize the exact workflow filename
+that performs each publish job; the complete field values are documented in
+[release operations](docs/operations/releases.md#trusted-publisher-configuration).
+`release-all.yml` is an optional repository-level button that checks NuGet,
+npm, and PyPI and dispatches those existing trusted workflows only for versions
+that are not fully published.
 
 On Windows, replace `./build.sh` with `.\build.cmd`.
 

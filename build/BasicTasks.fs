@@ -6,6 +6,10 @@ open Fake.DotNet
 open Helpers
 open ProjectInfo
 
+let validateReleaseMetadata = BuildTask.create "ValidateReleaseMetadata" [] {
+    ReleaseMetadata.validate ()
+}
+
 let cleanPortableArtifacts = BuildTask.create "CleanPortableArtifacts" [] {
     recreateDirectory portableArtifactsDir
     recreateDirectory packageCacheDir
@@ -16,7 +20,7 @@ let preparePortableToolchain = BuildTask.create "PreparePortableToolchain" [] {
     runUv [ "sync"; "--locked" ] "."
 }
 
-let buildSolution = BuildTask.create "BuildSolution" [] {
+let buildSolution = BuildTask.create "BuildSolution" [ validateReleaseMetadata ] {
     mainSolution
     |> DotNet.build (fun options ->
         { options with
@@ -37,7 +41,7 @@ let testSolution = BuildTask.create "TestSolution" [ buildSolution ] {
                     DisableInternalBinLog = true } })
 }
 
-let testStagingArea = BuildTask.create "TestStagingArea" [] {
+let testStagingArea = BuildTask.create "TestStagingArea" [ validateReleaseMetadata ] {
     stagingSolution
     |> DotNet.build (fun options ->
         { options with

@@ -208,21 +208,21 @@ let private packCodecsPython () =
         ]
     runUv [ "build"; "--wheel"; "--out-dir"; Path.GetFullPath packageDir; Path.GetFullPath outputDirectory ] "."
 
-let packClient = BuildTask.create "PackClient" [ cleanPackages ] {
+let packClient = BuildTask.create "PackClient" [ cleanPackages; validateReleaseMetadata ] {
     packProject clientProject
 }
 
-let packClientInterop = BuildTask.create "PackClientInterop" [ cleanPackages ] {
+let packClientInterop = BuildTask.create "PackClientInterop" [ cleanPackages; validateReleaseMetadata ] {
     packProject clientInteropProject
 }
 
-let packModel = BuildTask.create "PackModel" [ cleanPackages; preparePortableToolchain ] {
+let packModel = BuildTask.create "PackModel" [ cleanPackages; preparePortableToolchain; validateReleaseMetadata ] {
     packProject modelProject
     packModelJavaScript ()
     packModelPython ()
 }
 
-let packCodecs = BuildTask.create "PackCodecs" [ cleanPackages; preparePortableToolchain ] {
+let packCodecs = BuildTask.create "PackCodecs" [ cleanPackages; preparePortableToolchain; validateReleaseMetadata ] {
     packProject codecsProject
     packCodecsJavaScript ()
     packCodecsPython ()

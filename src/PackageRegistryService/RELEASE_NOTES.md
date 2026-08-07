@@ -4,7 +4,7 @@ All notable changes to the package registry service are documented here. The
 service follows semantic versioning independently of the `/api/v1` compatibility
 contract.
 
-## [1.1.0] - CWL command inputs
+## 1.1.0 - 2026-07-28 - CWL command inputs
 
 Adds a deliberately scoped CWL v1.2 command-input contract throughout the
 package registry, giving packages machine-readable input metadata without

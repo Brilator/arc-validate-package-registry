@@ -7,11 +7,6 @@ on:
         required: true
         type: string
         description: "The build project target that packs the package"
-    secrets:
-      NUGET_USER:
-        required: true
-        description: "The nuget.org profile name used by the trusted-publishing policy"
-
 jobs:
   release:
     runs-on: ubuntu-latest

@@ -1,0 +1,208 @@
+name: "Release all packages"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: release-all-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: "Dispatch unpublished package versions"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x.x
+
+      - name: Make build script executable
+        run: chmod +x build.sh
+
+      - name: Validate package versions and release notes
+        run: ./build.sh ValidateReleaseMetadata
+
+      - name: Check registries and dispatch package workflows
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require("node:fs");
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.ref
+              .replace(/^refs\/heads\//, "")
+              .replace(/^refs\/tags\//, "");
+
+            function projectVersion(path) {
+              const content = fs.readFileSync(path, "utf8");
+              const matches = [...content.matchAll(/<PackageVersion>([^<]+)<\/PackageVersion>/g)];
+
+              if (matches.length !== 1) {
+                throw new Error(`Expected exactly one PackageVersion in ${path}, found ${matches.length}.`);
+              }
+
+              return matches[0][1].trim();
+            }
+
+            function pythonVersion(version) {
+              return version
+                .replace("-alpha.", "a")
+                .replace("-beta.", "b")
+                .replace("-preview.", "a")
+                .replace("-rc.", "rc");
+            }
+
+            async function registryDocument(url) {
+              const response = await fetch(url, {
+                headers: {
+                  Accept: "application/json",
+                  "User-Agent": "nfdi4plants-package-release-check"
+                }
+              });
+
+              if (response.status === 404) {
+                return null;
+              }
+
+              if (!response.ok) {
+                throw new Error(`Registry check failed for ${url}: HTTP ${response.status}.`);
+              }
+
+              return response.json();
+            }
+
+            async function nugetHas(packageName, version) {
+              const name = packageName.toLowerCase();
+              const document = await registryDocument(
+                `https://api.nuget.org/v3-flatcontainer/${name}/index.json`
+              );
+
+              return document?.versions?.some(candidate =>
+                candidate.toLowerCase() === version.toLowerCase()
+              ) ?? false;
+            }
+
+            async function npmHas(packageName, version) {
+              const document = await registryDocument(
+                `https://registry.npmjs.org/${encodeURIComponent(packageName)}`
+              );
+
+              return Object.prototype.hasOwnProperty.call(document?.versions ?? {}, version);
+            }
+
+            async function pypiHas(packageName, version) {
+              const document = await registryDocument(
+                `https://pypi.org/pypi/${encodeURIComponent(packageName)}/json`
+              );
+
+              return Object.prototype.hasOwnProperty.call(
+                document?.releases ?? {},
+                pythonVersion(version)
+              );
+            }
+
+            const packages = [
+              {
+                name: "ValidationPackage.Model",
+                workflow: "release-model.yml",
+                version: projectVersion("src/ValidationPackage.Model/ValidationPackage.Model.fsproj"),
+                checks: [
+                  ["NuGet", version => nugetHas("ValidationPackage.Model", version)],
+                  ["npm", version => npmHas("@nfdi4plants/validationpackage-model", version)],
+                  ["PyPI", version => pypiHas("validationpackage-model", version)]
+                ]
+              },
+              {
+                name: "ValidationPackage.Codecs",
+                workflow: "release-codecs.yml",
+                version: projectVersion("src/ValidationPackage.Codecs/ValidationPackage.Codecs.fsproj"),
+                checks: [
+                  ["NuGet", version => nugetHas("ValidationPackage.Codecs", version)],
+                  ["npm", version => npmHas("@nfdi4plants/validationpackage-codecs", version)],
+                  ["PyPI", version => pypiHas("validationpackage-codecs", version)]
+                ]
+              },
+              {
+                name: "AVPRClient",
+                workflow: "release-client.yml",
+                version: projectVersion("src/AVPRClient/AVPRClient.csproj"),
+                checks: [
+                  ["NuGet", version => nugetHas("AVPRClient", version)]
+                ]
+              },
+              {
+                name: "AVPRClient.Interop",
+                workflow: "release-client-interop.yml",
+                version: projectVersion("src/AVPRClient.Interop/AVPRClient.Interop.csproj"),
+                checks: [
+                  ["NuGet", version => nugetHas("AVPRClient.Interop", version)]
+                ]
+              }
+            ];
+
+            const rows = [[
+              { data: "Package", header: true },
+              { data: "Version", header: true },
+              { data: "Registry state", header: true },
+              { data: "Action", header: true }
+            ]];
+
+            for (const packageDefinition of packages) {
+              const registryStates = [];
+
+              for (const [registry, check] of packageDefinition.checks) {
+                const exists = await check(packageDefinition.version);
+                registryStates.push(`${registry}: ${exists ? "published" : "missing"}`);
+              }
+
+              const missing = registryStates.some(state => state.endsWith(": missing"));
+              let action = "Skipped: version is fully published";
+
+              if (missing) {
+                const activeRuns = await github.rest.actions.listWorkflowRuns({
+                  owner,
+                  repo,
+                  workflow_id: packageDefinition.workflow,
+                  branch: ref,
+                  per_page: 20
+                });
+
+                const alreadyRunning = activeRuns.data.workflow_runs.some(run =>
+                  run.head_sha === context.sha && run.status !== "completed"
+                );
+
+                if (alreadyRunning) {
+                  action = "Skipped: workflow already running for this revision";
+                } else {
+                  await github.rest.actions.createWorkflowDispatch({
+                    owner,
+                    repo,
+                    workflow_id: packageDefinition.workflow,
+                    ref
+                  });
+                  action = `Dispatched ${packageDefinition.workflow}`;
+                }
+              }
+
+              rows.push([
+                packageDefinition.name,
+                packageDefinition.version,
+                registryStates.join("; "),
+                action
+              ]);
+            }
+
+            await core.summary
+              .addHeading(`Package release dispatch for ${ref}`)
+              .addTable(rows)
+              .addRaw("\nPackage-specific workflows retain trusted-publisher identity and release-environment approval.\n")
+              .write();
