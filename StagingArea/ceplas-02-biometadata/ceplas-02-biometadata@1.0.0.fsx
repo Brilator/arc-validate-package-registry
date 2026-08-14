@@ -320,9 +320,9 @@ let nonCriticalCases =
                 $"Run {r.Identifier} contains no meaningful description (i.e. longer than 30 characters):\"{r.Description.Value}\""
 
         // TestCase Non-critical: Every run contains performers
-        testCase $"Study {r.Identifier} contains contacts" <| fun _ ->
+        testCase $"Run {r.Identifier} contains contacts" <| fun _ ->
             Expect.isGreaterThan r.Performers.Count 0
-                $"Study {r.Identifier} contains no performers"
+                $"Run {r.Identifier} contains no performers"
 
         // TestCase Non-critical: Every run contains a measurement type
         testCase $"Run {r.Identifier} contains top-level metadata measurement type" <| fun _ ->
