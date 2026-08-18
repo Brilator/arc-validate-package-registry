@@ -114,7 +114,7 @@ let criticalCases =
 
                 let filePath = if d.FilePath = "" then d.Name else d.FilePath
 
-                testCaseAsync $"Data path {filePath} of assay {a.Identifier} resolves to local file or folder or a URL" <| async {
+                testCaseAsync $"Data path '{filePath}' of assay '{a.Identifier}' resolves to local file or folder or a URL" <| async {
                     if pathIsUrl filePath then
                         let! result = urlResolves filePath
 
@@ -124,22 +124,22 @@ let criticalCases =
 
                         | HttpError statusCode ->
                             Expect.isLessThan statusCode 300
-                                $"Url {filePath} in assay {a.Identifier} returned an unsuccessful HTTP status"
+                                $"Url '{filePath}' in assay '{a.Identifier}' returned an unsuccessful HTTP status"
 
                         | Malformed error ->
                             Expect.isTrue false
-                                $"Url {filePath} in assay {a.Identifier} is malformed: {error}"
+                                $"Url '{filePath}' in assay '{a.Identifier}' is malformed: {error}"
 
                         | Unreachable error ->
                             Expect.isTrue false
-                                $"Url {filePath} in assay {a.Identifier} could not be reached: {error}"
+                                $"Url '{filePath}' in assay '{a.Identifier}' could not be reached: {error}"
 
                     else
                         let p = d.DataContext.Value.GetAbsolutePathForAssay(a.Identifier)
                         let fullPath = Path.Combine(arcDir, p)
 
                         Expect.isTrue (File.Exists fullPath || Directory.Exists fullPath)
-                            $"Data path {filePath} does not resolve to existing local file or folder and was not identified as URL"
+                            $"Data path '{filePath}' does not resolve to existing local file or folder and was not identified as URL"
                 }
 
         // TestCase Critical: ARC run data file exists
@@ -150,18 +150,18 @@ let criticalCases =
 
         // TestCase Critical: Every data entity derives from a Source or Sample
 
-            testCase $"Data entity {d.Name} derives from a Source or Sample"  <| fun _ ->
+            testCase $"Data entity '{d.Name}' derives from a Source or Sample"  <| fun _ ->
 
                 let firstSamplesContainBlank =  d.FirstSamples |> List.exists (fun q -> q.Name = "")
                 
                 Expect.isFalse ((d.FirstSamples.IsEmpty || firstSamplesContainBlank) && d.Sources.Count = 0)
-                    $"Data entity {d.Name} does not derive from a Source or Sample"
+                    $"Data entity '{d.Name}' does not derive from a Source or Sample"
         
         // TestCase Critical: Every data entity is annotated with at least one of Characteristic, Parameter, Factor
             
-            testCase $"Data entity {d.Name} contains at least one of Characteristic, Parameter, Factor"  <| fun _ ->
+            testCase $"Data entity '{d.Name}' contains at least one of Characteristic, Parameter, Factor"  <| fun _ ->
                 Expect.isNonEmpty d.PreviousValues
-                    $"Data entity {d.Name} is not associated with any annotation value"
+                    $"Data entity '{d.Name}' is not associated with any annotation value"
 
     ]
 

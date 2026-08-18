@@ -72,7 +72,7 @@ let tableNodes =
     let tableNodeGetter (collectionID : string ) (tables : ArcTables) = 
         tables
         |> Seq.map (fun t ->
-            $"{t.Name} in {collectionID}", 
+            $"'{t.Name}' in {collectionID}", 
             set [
                 yield! t.InputNames |> List.map trimDataFileName
                 yield! t.OutputNames |> List.map trimDataFileName
@@ -81,13 +81,13 @@ let tableNodes =
 
     let assayTables = 
         arc.Assays
-        |> Seq.collect (fun a -> tableNodeGetter $"Assay {a.Identifier}" a)
+        |> Seq.collect (fun a -> tableNodeGetter $"Assay '{a.Identifier}'" a)
     let studyTables = 
         arc.Studies
-        |> Seq.collect (fun s -> tableNodeGetter $"Study {s.Identifier}" s)
+        |> Seq.collect (fun s -> tableNodeGetter $"Study '{s.Identifier}'" s)
     let runTables = 
         arc.Runs
-        |> Seq.collect (fun r -> tableNodeGetter $"Run {r.Identifier}" r)
+        |> Seq.collect (fun r -> tableNodeGetter $"Run '{r.Identifier}'" r)
     
     Seq.concat [
         assayTables
@@ -106,31 +106,31 @@ let criticalCases =
 
         // TestCase Critical: Every annotation table contains an Input
         
-        testCase $"Table {t.Name} contains `Input`" <| fun _ ->
+        testCase $"Table '{t.Name}' contains `Input`" <| fun _ ->
                 
             Expect.isGreaterThanOrEqual t.InputNames.Length 1
-                $"Table {t.Name} contains no Input"
+                $"Table '{t.Name}' contains no Input"
 
         // TestCase Critical: Every annotation table contains an Output
         
-        testCase $"Table {t.Name} contains `Output`" <| fun _ ->
+        testCase $"Table '{t.Name}' contains `Output`" <| fun _ ->
                 
                 Expect.isGreaterThanOrEqual t.OutputNames.Length 1
-                    $"Table {t.Name} contains no Output"
+                    $"Table '{t.Name}' contains no Output"
 
         // TestCase Critical: Every annotation table contains a Protocol reference
 
-        testCase $"Table {t.Name} contains `Protocol`" <| fun _ ->
+        testCase $"Table '{t.Name}' contains `Protocol`" <| fun _ ->
             Expect.isTrue
                 (t.TryGetProtocolUriColumn().IsSome || t.TryGetProtocolNameColumn().IsSome)
-                $"Table {t.Name} contains no 'Protocol Uri' nor 'Protocol REF' column"
+                $"Table '{t.Name}' contains no 'Protocol Uri' nor 'Protocol REF' column"
     
     /////////////////////////////////////////////////////////////////
 
     // TestCase Critical: ARC annotation tables are connected
     for name, nodes in tableNodes do    
         
-        testCase $"ARC annotation table ({name}) is connected"  <| fun _ ->
+        testCase $"ARC annotation table {name} is connected"  <| fun _ ->
 
             let tableConnection = tableNodes |> Seq.exists (fun (n, nds) ->
                     if n <> name then

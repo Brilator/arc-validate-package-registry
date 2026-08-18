@@ -151,32 +151,32 @@ let criticalCases =
 
     // TestCase Critical: Investigation contains title
 
-    testCase $"Investigation {arc.Identifier} contains title" <| fun _ ->
+    testCase $"Investigation '{arc.Identifier}' contains title" <| fun _ ->
 
         // Investigation title exists        
         Expect.isSome arc.Title
-            $"Investigation {arc.Identifier} contains no title"
+            $"Investigation '{arc.Identifier}' contains no title"
 
         // Investigation title is longer than 3 characters
         Expect.isGreaterThan arc.Title.Value.Length 3 
-            $"Investigation {arc.Identifier} contains no meaningful title (i.e. longer than 3 characters):\"{arc.Title.Value}\""       
+            $"Investigation '{arc.Identifier}' contains no meaningful title (i.e. longer than 3 characters):\"{arc.Title.Value}\""       
 
     // TestCase Critical: Investigation contains description
 
-    testCase $"Investigation {arc.Identifier} contains description" <| fun _ ->
+    testCase $"Investigation '{arc.Identifier}' contains description" <| fun _ ->
         // Investigation description exists
         Expect.isSome arc.Description
-            $"Investigation {arc.Identifier} contains no description"
+            $"Investigation '{arc.Identifier}' contains no description"
         // Investigation description is longer than 30 characters
         Expect.isGreaterThan arc.Description.Value.Length 30
-            $"Investigation {arc.Identifier} contains no meaningful description (i.e. longer than 30 characters):\"{arc.Description.Value}\""
+            $"Investigation '{arc.Identifier}' contains no meaningful description (i.e. longer than 30 characters):\"{arc.Description.Value}\""
 
     // TestCase Critical: Investigation contains contact
 
-    testCase $"Investigation {arc.Identifier} contains contact" <| fun _ ->        
+    testCase $"Investigation '{arc.Identifier}' contains contact" <| fun _ ->        
         
         Expect.notEqual arc.Contacts.Count 0
-            $"Investigation {arc.Identifier} contains no contact"
+            $"Investigation '{arc.Identifier}' contains no contact"
     
     // TestCase Critical: All investigation contacts contain first name and last name
 
@@ -185,7 +185,7 @@ let criticalCases =
         let fname = Option.defaultValue "" c.FirstName
         let lname = Option.defaultValue "" c.LastName
 
-        let fullName = $"{fname} {lname}"
+        let fullName = $"'{fname} {lname}'"
 
         testCase $"Contact {fullName} contains first name" <| fun _ ->
             Expect.isSome c.FirstName
@@ -255,7 +255,7 @@ let nonCriticalCases =
         let fname = Option.defaultValue "" c.FirstName
         let lname = Option.defaultValue "" c.LastName
 
-        let fullName = $"{fname} {lname}"
+        let fullName = $"'{fname} {lname}'"
     
     // TestCase Non-critical: Every investigation contact should have a valid email
 
