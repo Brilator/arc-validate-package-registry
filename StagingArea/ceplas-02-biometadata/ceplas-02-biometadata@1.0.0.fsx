@@ -8,10 +8,13 @@ Description: |
         - ARC contains any annotation column (Characteristic, Parameter, Factor)
         - Every study contains at least one annotation table
         - Every study annotation table contains basic information
+        - Every study annotation table column contains values
         - Every assay contains at least one annotation table
         - Every assay annotation table contains basic information
+        - Every assay annotation table column contains values
         - Every run contains at least one annotation table
         - Every run annotation table contains basic information
+        - Every run annotation table column contains values
 
         ## Non-critical quality criteria
         - Every study contains a title
@@ -69,8 +72,8 @@ open System.IO
 
 
 
-let hasAnnotationColumns (t: ARC)=
-    t.ArcTables
+let hasAnnotationColumns (a: ARC)=
+    a.ArcTables
     |> Seq.exists (fun t ->
         t.Columns
         |> Seq.exists (fun c ->
@@ -93,6 +96,20 @@ let factorCount (t : ArcTable)=
     t.Columns
     |> Seq.filter (fun c -> c.Header.isFactor)
     |> Seq.length
+
+let isEmptyAnnoTable (t : ArcTable) =
+    t.ISAValues
+    |> Seq.forall (fun kv -> not kv.Value.HasValue)
+
+let emptyAnnoCols (t : ArcTable) =
+    t.ISAValues
+    |> Seq.groupBy (fun kv -> kv.Value.NameText)
+    |> Seq.choose (fun (header, values) ->
+        if values |> Seq.forall (fun kv -> not kv.Value.HasValue) then
+            Some header
+        else
+            None
+    )
 
 
 
@@ -139,17 +156,29 @@ let criticalCases =
             Expect.isGreaterThan s.TableCount 0 
                 $"Study {s.Identifier} contains no annotation table"
         
-        // TestCase Critical: Every study annotation table contains basic information
-        // (more than 2 columns and 0 rows)
-        
-        for t in s.Tables do
-            testCase $"Table {t.Name} of study {s.Identifier} contains basic information" <| fun _ ->
+        for t in s.Tables do        
                 
+            // TestCase Critical: Every study annotation table contains basic information
+            
+                
+            testCase $"Table {t.Name} of study {s.Identifier} contains basic information" <| fun _ ->
+                Expect.isFalse (isEmptyAnnoTable t)
+                    $"Table {t.Name} is empty"
                 Expect.isGreaterThanOrEqual t.ColumnCount 2
                     $"Table {t.Name} contains less than 2 columns"
                 Expect.isGreaterThan t.RowCount 0
                     $"Table {t.Name} contains no rows"
 
+            // TestCase Critical: Every study annotation table column contains values
+            if not (isEmptyAnnoTable t) then
+                
+                let emptyCols = emptyAnnoCols t
+                let headers = String.concat ", " emptyCols
+
+                testCase $"All table {t.Name} columns of study {s.Identifier} contain values" <| fun _ ->
+                    Expect.isTrue (emptyCols |> Seq.isEmpty)
+                        $"Table {t.Name} contains empty column(s): {headers}"
+    
     for a in arc.Assays do
         
         // TestCase Critical: Every assay contains at least one annotation table
@@ -158,16 +187,30 @@ let criticalCases =
             Expect.isGreaterThan a.TableCount 0
                 $"Assay {a.Identifier} contains no annotation table"
         
-        // TestCase Critical: Every assay annotation table contains basic information
-        // (more than 2 columns and 0 rows)
+
         
         for t in a.Tables do
-            testCase $"Table {t.Name} of assay {a.Identifier} contains basic information" <| fun _ ->
                 
+            // TestCase Critical: Every assay annotation table contains basic information
+            // (is not empty and has more than 2 columns and 0 rows)
+                
+            testCase $"Table {t.Name} of assay {a.Identifier} contains basic information" <| fun _ ->
+                Expect.isFalse (isEmptyAnnoTable t)
+                    $"Table {t.Name} is empty"
                 Expect.isGreaterThanOrEqual t.ColumnCount 2
                     $"Table {t.Name} contains less than 2 columns"
                 Expect.isGreaterThan t.RowCount 0
                     $"Table {t.Name} contains no rows"
+
+            // TestCase Critical: Every assay annotation table column contains values
+            if not (isEmptyAnnoTable t) then
+                
+                let emptyCols = emptyAnnoCols t
+                let headers = String.concat ", " emptyCols
+
+                testCase $"All table {t.Name} columns of assay {a.Identifier} contain values" <| fun _ ->
+                    Expect.isTrue (emptyCols |> Seq.isEmpty)
+                        $"Table {t.Name} contains empty column(s): {headers}"
                     
     for r in arc.Runs do
         
@@ -176,16 +219,28 @@ let criticalCases =
             Expect.isGreaterThan r.TableCount 0
                 $"Run {r.Identifier} contains no annotation table"
         
-        // TestCase Critical: Every run annotation table contains basic information
-        // (more than 2 columns and 0 rows)
-        
         for t in r.Tables do
-            testCase $"Table {t.Name} of run {r.Identifier} contains basic information" <| fun _ ->
                 
+            // TestCase Critical: Every run annotation table contains basic information
+            // (is not empty and has more than 2 columns and 0 rows)
+            
+            testCase $"Table {t.Name} of run {r.Identifier} contains basic information" <| fun _ ->
+                Expect.isFalse (isEmptyAnnoTable t)
+                    $"Table {t.Name} is empty"
                 Expect.isGreaterThanOrEqual t.ColumnCount 2
                     $"Table {t.Name} contains less than 2 columns"
                 Expect.isGreaterThan t.RowCount 0
                     $"Table {t.Name} contains no rows"
+
+            // TestCase Critical: Every run annotation table column contains values
+            if not (isEmptyAnnoTable t) then
+                
+                let emptyCols = emptyAnnoCols t
+                let headers = String.concat ", " emptyCols
+
+                testCase $"All table {t.Name} columns of run {r.Identifier} contain values" <| fun _ ->
+                    Expect.isTrue (emptyCols |> Seq.isEmpty)
+                        $"Table {t.Name} contains empty column(s): {headers}"
 
     ]
     
